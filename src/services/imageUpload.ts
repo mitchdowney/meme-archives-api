@@ -53,12 +53,12 @@ const checkImageFileTypes = ({
   }
 }
 
-// TODO: the allow_preview_image etc booleans are actually string / 'true' or undefined type
+// TODO: the allow_preview_border_image etc booleans are actually string / 'true' or undefined type
 // the type and handling should be updated
 type ImageUpload = {
-  allow_preview_image: boolean
+  allow_preview_border_image: boolean
   artistNames: string[]
-  border_preview_crop_position: 'top' | 'middle' | 'bottom'
+  preview_crop_position: 'top' | 'middle' | 'bottom' | 'no-crop'
   fileImageAnimation: Express.Multer.File
   fileImageBorder: Express.Multer.File
   fileImageNoBorder: Express.Multer.File
@@ -90,9 +90,9 @@ type ImageData = {
 }
 
 const imagesUpload = async ({
-  allow_preview_image,
+  allow_preview_border_image,
   artistNames,
-  border_preview_crop_position,
+  preview_crop_position,
   fileImageAnimation,
   fileImageBorder,
   fileImageNoBorder,
@@ -173,14 +173,14 @@ const imagesUpload = async ({
     }
   }
   
-  if (fileImageNoBorder && (!prevent_border_image || allow_preview_image)) {
+  if (fileImageNoBorder && (!prevent_border_image || allow_preview_border_image)) {
     const previewImageFile = await createPreviewImageWithBorder(fileImageNoBorder)
     await uploadImageToS3(id, 'preview', previewImageFile)
   } else if (fileImageNoBorder) {
-    const previewImageFile = await createPreviewImageWithoutBorder(fileImageNoBorder, border_preview_crop_position)
+    const previewImageFile = await createPreviewImageWithoutBorder(fileImageNoBorder, preview_crop_position)
     await uploadImageToS3(id, 'preview', previewImageFile)
   } else if (fileImageBorder) {
-    const previewImageFile = await createPreviewImageWithoutBorder(fileImageBorder, border_preview_crop_position)
+    const previewImageFile = await createPreviewImageWithoutBorder(fileImageBorder, preview_crop_position)
     await uploadImageToS3(id, 'preview', previewImageFile)
   }
   
@@ -200,7 +200,7 @@ const imagesUpload = async ({
 }
 
 export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, isUpdating: boolean) => {
-  const { allow_preview_image, artistNames, border_preview_crop_position, has_animation, has_border,
+  const { allow_preview_border_image, artistNames, preview_crop_position, has_animation, has_border,
     has_no_border, prevent_border_image, remove_animation, remove_border, remove_no_border, slug,
     tagTitles = [], title, type } = req.body
   const { fileImageAnimations, fileImageBorders, fileImageNoBorders } = req.files
@@ -213,9 +213,9 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
   const parsedTagTitles = JSON.parse(tagTitles)
 
   const data = await imagesUpload({
-    allow_preview_image,
+    allow_preview_border_image,
     artistNames: parsedArtistNames,
-    border_preview_crop_position,
+    preview_crop_position,
     fileImageAnimation,
     fileImageBorder,
     fileImageNoBorder,

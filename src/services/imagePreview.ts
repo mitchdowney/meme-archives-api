@@ -75,60 +75,97 @@ async function resizeForImagePreview (borderlessImageBuffer: ArrayBuffer) {
 
 export async function createPreviewImageWithoutBorder(
   borderedImageFile: Express.Multer.File,
-  cropPosition: 'top' | 'middle' | 'bottom' = 'middle'
+  cropPosition: 'top' | 'middle' | 'bottom' | 'no-crop' = 'middle'
 ) {
   return new Promise<Express.Multer.File>((resolve, reject) => {
     (async () => {
       try {
-        const { width: originalWidth } = await sharp(borderedImageFile?.buffer).metadata()
+        if (cropPosition === 'no-crop') {
+          const canvas = sharp({
+            create: {
+              width: overlayArea.width,
+              height: overlayArea.height,
+              channels: 4, // 4 channels for RGB color
+              background: { r: 255, g: 255, b: 255, alpha: 1 }
+            }
+          }).png()
 
-        let resizedImageBuffer = borderedImageFile?.buffer
-
-        if (originalWidth < overlayArea.width) {
-          resizedImageBuffer = await sharp(borderedImageFile?.buffer)
-            .resize({
-              width: overlayArea.width
+          const borderlessImageBuffer = await sharp(borderedImageFile.buffer)
+            .resize(overlayArea.width, overlayArea.height, {
+              fit: 'inside',
+              background: { r: 255, g: 255, b: 255 },
+              withoutEnlargement: true
             })
+            .flatten({ background: { r: 255, g: 255, b: 255 } })
             .toBuffer()
-        }
 
-        const { height: initialResizedHeight } = await sharp(resizedImageBuffer).metadata()
+          const { width: imageWidth, height: imageHeight } = await sharp(borderlessImageBuffer).metadata()
+          
+          const centeredLeft = (overlayArea.width - imageWidth) / 2
+          const centeredTop = (overlayArea.height - imageHeight) / 2
 
-        if (initialResizedHeight < overlayArea.height) {
-          resizedImageBuffer = await sharp(borderedImageFile?.buffer)
-            .resize({
-              height: overlayArea.height
-            })
+          const combinedImage = await canvas
+            .composite([
+              {
+                input: borderlessImageBuffer,
+                left: centeredLeft,
+                top: centeredTop
+              }
+            ]).toBuffer()
+        
+          const finalImageFile = arrayBufferToExpressMulterFile(combinedImage, 'temp-preview', 'image/png');
+          resolve(finalImageFile)
+        } else {
+          const { width: originalWidth } = await sharp(borderedImageFile?.buffer).metadata()
+  
+          let resizedImageBuffer = borderedImageFile?.buffer
+  
+          if (originalWidth < overlayArea.width) {
+            resizedImageBuffer = await sharp(borderedImageFile?.buffer)
+              .resize({
+                width: overlayArea.width
+              })
+              .toBuffer()
+          }
+  
+          const { height: initialResizedHeight } = await sharp(resizedImageBuffer).metadata()
+  
+          if (initialResizedHeight < overlayArea.height) {
+            resizedImageBuffer = await sharp(borderedImageFile?.buffer)
+              .resize({
+                height: overlayArea.height
+              })
+              .toBuffer()
+          }
+  
+          // Calculate the dimensions for cropping the resized image
+          const { width: resizedWidth, height: resizedHeight } = await sharp(resizedImageBuffer).metadata()
+          const cropWidth = overlayArea.width
+          const cropHeight = overlayArea.height
+  
+          const cropX = Math.floor((resizedWidth - cropWidth) / 2) || 0
+  
+          let cropY = 0
+          if (cropPosition === 'top') {
+            cropY = 0
+          } else if (cropPosition === 'middle') {
+            const newCropY = Math.floor((resizedHeight - cropHeight) / 2)
+            cropY = newCropY > 0 ? newCropY : 0
+          } else if (cropPosition === 'bottom') {
+            const newCropY = resizedHeight - cropHeight
+            cropY = newCropY > 0 ? newCropY : 0
+          }
+  
+          // Crop the resized image from the horizontal middle
+          const croppedImageBuffer = await sharp(resizedImageBuffer)
+            .extract({ left: cropX, top: cropY, width: cropWidth, height: cropHeight })
             .toBuffer()
+  
+          // Convert the cropped image buffer to Express Multer File object
+          const croppedImageFile = arrayBufferToExpressMulterFile(croppedImageBuffer, 'temp-preview', 'image/png')
+  
+          resolve(croppedImageFile)
         }
-
-        // Calculate the dimensions for cropping the resized image
-        const { width: resizedWidth, height: resizedHeight } = await sharp(resizedImageBuffer).metadata()
-        const cropWidth = overlayArea.width
-        const cropHeight = overlayArea.height
-
-        const cropX = Math.floor((resizedWidth - cropWidth) / 2) || 0
-
-        let cropY = 0
-        if (cropPosition === 'top') {
-          cropY = 0
-        } else if (cropPosition === 'middle') {
-          const newCropY = Math.floor((resizedHeight - cropHeight) / 2)
-          cropY = newCropY > 0 ? newCropY : 0
-        } else if (cropPosition === 'bottom') {
-          const newCropY = resizedHeight - cropHeight
-          cropY = newCropY > 0 ? newCropY : 0
-        }
-
-        // Crop the resized image from the horizontal middle
-        const croppedImageBuffer = await sharp(resizedImageBuffer)
-          .extract({ left: cropX, top: cropY, width: cropWidth, height: cropHeight })
-          .toBuffer()
-
-        // Convert the cropped image buffer to Express Multer File object
-        const croppedImageFile = arrayBufferToExpressMulterFile(croppedImageBuffer, 'temp-preview', 'image/png')
-
-        resolve(croppedImageFile)
       } catch (error) {
         reject(error)
       }

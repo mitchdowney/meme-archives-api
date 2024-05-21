@@ -15,7 +15,7 @@ export const deleteImageFromS3 = async (
   id: number,
   imageType: ImageMediumType
 ) => {
-  const key = `${id}-${getUploadImageFileName(imageType)}.${getUploadImageFileExtension(imageType)}`
+  const key = `${id}${getUploadImageFileName(imageType)}.${getUploadImageFileExtension(imageType)}`
   const params = {
     Bucket: config.aws.imageBucket,
     Key: key // The key is the filename in the S3 bucket
@@ -29,7 +29,7 @@ export const uploadImageToS3 = async (
   imageType: ImageMediumType,
   file: Express.Multer.File
 ) => {
-  const key = `${id}-${getUploadImageFileName(imageType)}.${getUploadImageFileExtension(imageType)}`
+  const key = `${id}${getUploadImageFileName(imageType)}.${getUploadImageFileExtension(imageType)}`
 
   const params: S3.PutObjectRequest = {
     Bucket: config.aws.imageBucket,
@@ -44,13 +44,14 @@ export const uploadImageToS3 = async (
 
 const getUploadImageFileName = (imageType: ImageMediumType) => {
   if (imageType === 'animation') {
-    return 'animation'
+    return '-animation'
   } else if (imageType === 'border') {
-    return 'border'
-  } else if (imageType === 'no-border') {
-    return 'no-border'
-  } else if (imageType === 'preview') {
-    return 'preview'
+    return '-border'
+  } if (imageType === 'preview') {
+    return '-preview'
+  } else {
+    const useDeprecatedNoBorderImageName = config.aws.useDeprecatedNoBorderImageName
+    return useDeprecatedNoBorderImageName ? '-no-border' :''
   }
 }
 

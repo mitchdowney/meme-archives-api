@@ -7,26 +7,26 @@ const multer = require('multer')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cron = require('node-cron')
 
-
 import * as express from 'express'
 import { Request, Response } from 'express'
-import { auth, requiresAuth } from 'express-openid-connect'
+import { auth } from 'express-openid-connect'
 import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug, getArtists } from './controllers/artist'
-import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
-  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId } from './controllers/image'
-import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
-import { initAppDataSource } from './db'
-import { config } from './lib/config'
-import { parseCollectionsQuery, parsePageQuery } from './middleware/parsePageQuery'
-import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
-import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
-import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
 import { queryArtistCountMaterializedView, refreshArtistMaterializedView } from './controllers/artistCountMaterializedView'
-import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
-import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
-import { artistUploadFields, artistUploadHandler } from './services/artistImageUpload'
 import { addImageToCollection, createCollection, deleteCollection, getCollectionById,
   getCollectionBySlug, getCollections, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
+import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
+  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId } from './controllers/image'
+import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
+import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
+import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
+import { initAppDataSource } from './db'
+import { config } from './lib/config'
+import { authRequire } from './middleware/authRequire'
+import { parseCollectionsQuery, parsePageQuery } from './middleware/parsePageQuery'
+import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
+import { artistUploadFields, artistUploadHandler } from './services/artistImageUpload'
+import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
+import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
 
 const port = 4321
 
@@ -65,7 +65,7 @@ const startApp = async () => {
   })
 
   app.get('/admin/userinfo',
-    requiresAuth(),
+    authRequire,
     async function (req: Request, res: Response) {
       const user = req.oidc.user
       if (user) {
@@ -82,7 +82,7 @@ const startApp = async () => {
     })
 
   app.post('/artist/update',
-    requiresAuth(),
+    authRequire,
     multerUpload.fields(artistUploadFields),
     async function (req: ArtistUploadRequest, res: Response) {
       try {
@@ -177,7 +177,7 @@ const startApp = async () => {
     })
 
   app.post('/collection',
-    requiresAuth(),
+    authRequire,
     async function (req: Request, res: Response) {
       try {
         const { slug, stickers_url, title, type } = req.body
@@ -191,7 +191,7 @@ const startApp = async () => {
     })
 
   app.post('/collection/update',
-    requiresAuth(),
+    authRequire,
     async function (req: Request, res: Response) {
       try {
         const { id, slug, stickers_url, title, type } = req.body
@@ -216,7 +216,7 @@ const startApp = async () => {
     })
 
   app.post('/collection/image/add',
-    requiresAuth(),
+    authRequire,
     async function (req: Request, res: Response) {
       try {
         const { collection_id, image_id, isPreview, collection_image_type } = req.body
@@ -236,7 +236,7 @@ const startApp = async () => {
     })
 
   app.post('/collection/image/remove',
-    requiresAuth(),
+    authRequire,
     async function (req: Request, res: Response) {
       try {
         const { collection_id, image_id } = req.body
@@ -254,7 +254,7 @@ const startApp = async () => {
     })
 
   app.post('/collection/image/image-positions/update',
-    requiresAuth(),
+    authRequire,
     async function (req: Request, res: Response) {
       try {
         const { collection_id, newImagePositions } = req.body
@@ -269,7 +269,7 @@ const startApp = async () => {
     })
 
   app.post('/collection/image/preview-positions/update',
-    requiresAuth(),
+    authRequire,
     async function (req: Request, res: Response) {
       try {
         const { collection_id, newPreviewPositions } = req.body
@@ -289,7 +289,7 @@ const startApp = async () => {
     tried to use the DELETE request method.
   */
   app.post('/collection/delete/:id',
-    requiresAuth(),
+    authRequire,
     parsePathIntIdOrSlug,
     async function (req: PathIntIdOrSlugRequest, res: Response) {
       try {
@@ -506,7 +506,7 @@ const startApp = async () => {
     tried to use the DELETE request method.
   */
   app.post('/image/delete/:id',
-    requiresAuth(),
+    authRequire,
     parsePathIntIdOrSlug,
     async function (req: PathIntIdOrSlugRequest, res: Response) {
       try {
@@ -521,7 +521,7 @@ const startApp = async () => {
     })
 
   app.post('/image/update',
-    requiresAuth(),
+    authRequire,
     multerUpload.fields(imageUploadFields),
     async function (req: ImageUploadRequest, res: Response) {
       try {
@@ -542,7 +542,7 @@ const startApp = async () => {
     })
 
   app.post('/image',
-    requiresAuth(),
+    authRequire,
     multerUpload.fields(imageUploadFields),
     async function (req: ImageUploadRequest, res: Response) {
       try {

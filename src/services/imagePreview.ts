@@ -101,15 +101,15 @@ export async function createPreviewImageWithoutBorder(
 
           const { width: imageWidth, height: imageHeight } = await sharp(borderlessImageBuffer).metadata()
           
-          const centeredLeft = (overlayArea.width - imageWidth) / 2
-          const centeredTop = (overlayArea.height - imageHeight) / 2
+          const centeredLeft = Math.round((overlayArea.width - imageWidth) / 2)
+          const centeredBottom = Math.floor(overlayArea.height - imageHeight)
 
           const combinedImage = await canvas
             .composite([
               {
                 input: borderlessImageBuffer,
                 left: centeredLeft,
-                top: centeredTop
+                top: centeredBottom
               }
             ]).toBuffer()
         

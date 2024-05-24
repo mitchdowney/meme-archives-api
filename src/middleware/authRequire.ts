@@ -3,21 +3,22 @@ import { Unauthorized } from 'http-errors'
 
 export const authRequire = (req, res, next) => {
   try {
-    requiresAuth()(req, res, error => {
-      if (error) {
-        const authHeader = req.headers.authorization
-        const adminSecretKey = process.env.ADMIN_SECRET_KEY
+    const authHeader = req.headers.authorization
+    const adminSecretKey = process.env.ADMIN_SECRET_KEY
 
-        if (authHeader && adminSecretKey?.length >= 32 && authHeader === adminSecretKey) {
-          next()
-        } else {
+    if (authHeader && adminSecretKey?.length >= 32 && authHeader === adminSecretKey) {
+      next()
+    } else {
+      requiresAuth()(req, res, error => {
+        if (error) {
           throw new Unauthorized()
+        } else {
+          next()
         }
-      } else {
-        next()
-      }
-    });
+      })
+    }
   } catch (error) {
+    console.log('error', error)
     next(error)
   }
 }

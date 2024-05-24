@@ -1,6 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
+const path = require('path')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const sharp = require('sharp')
 
+import { config } from '../lib/config'
 import { readImageFile } from '../lib/fs'
 import { arrayBufferToExpressMulterFile } from '../lib/multer'
 
@@ -81,15 +84,22 @@ export async function createPreviewImageWithoutBorder(
     (async () => {
       try {
         if (cropPosition === 'no-crop') {
-          const canvas = sharp({
-            create: {
-              width: overlayArea.width,
-              height: overlayArea.height,
-              channels: 4, // 4 channels for RGB color
-              background: { r: 255, g: 255, b: 255, alpha: 1 }
-            }
-          }).png()
-
+          let canvas
+          if (config.images.usePreviewBackgroundImage) {
+            canvas = sharp(path.join(__dirname, '../assets/preview_background.png'))
+              .resize(overlayArea.width, overlayArea.height)
+              .png()
+          } else {
+            canvas = sharp({
+              create: {
+                width: overlayArea.width,
+                height: overlayArea.height,
+                channels: 4, // 4 channels for RGB color
+                background: { r: 255, g: 255, b: 255, alpha: 1 }
+              }
+            }).png()
+          }
+        
           const borderlessImageBuffer = await sharp(borderedImageFile.buffer)
             .resize(overlayArea.width, overlayArea.height, {
               fit: 'inside',
@@ -98,12 +108,12 @@ export async function createPreviewImageWithoutBorder(
             })
             .flatten({ background: { r: 255, g: 255, b: 255 } })
             .toBuffer()
-
+        
           const { width: imageWidth, height: imageHeight } = await sharp(borderlessImageBuffer).metadata()
-          
+        
           const centeredLeft = Math.round((overlayArea.width - imageWidth) / 2)
           const centeredTop = Math.round((overlayArea.height - imageHeight) / 2)
-
+        
           const combinedImage = await canvas
             .composite([
               {
@@ -113,7 +123,7 @@ export async function createPreviewImageWithoutBorder(
               }
             ]).toBuffer()
         
-          const finalImageFile = arrayBufferToExpressMulterFile(combinedImage, 'temp-preview', 'image/png');
+          const finalImageFile = arrayBufferToExpressMulterFile(combinedImage, 'temp-preview', 'image/png')
           resolve(finalImageFile)
         } else {
           const { width: originalWidth } = await sharp(borderedImageFile?.buffer).metadata()

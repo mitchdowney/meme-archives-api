@@ -23,6 +23,9 @@ export const config = {
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD
   },
+  images: {
+    usePreviewBackgroundImage: process.env.USE_PREVIEW_BACKGROUND_IMAGE?.toLowerCase() === 'true'
+  },
   web: {
     baseUrl: process.env.WEB_BASE_URL
   }

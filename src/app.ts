@@ -554,8 +554,6 @@ const startApp = async () => {
         res.send(data)
       } catch (error) {
         res.status(400)
-        console.log('error', error)
-        console.log('error', error.message)
         res.send({ message: error.message })
       }
     })

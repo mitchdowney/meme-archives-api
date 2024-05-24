@@ -203,8 +203,6 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
   const { allow_preview_border_image, artistNames, preview_crop_position, has_animation, has_border,
     has_no_border, prevent_border_image, remove_animation, remove_border, remove_no_border, slug,
     tagTitles = [], title, type } = req.body
-  console.log('req.files', req.files)
-  console.log('req.body', req.body)
   const { fileImageAnimations, fileImageBorders, fileImageNoBorders } = req.files
 
   const fileImageAnimation = fileImageAnimations?.[0]

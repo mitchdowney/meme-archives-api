@@ -1,8 +1,9 @@
 import { getArtistById, updateArtist } from '../controllers/artist'
+import { config } from '../lib/config'
 import { getFileExtension } from '../lib/fileExtensions'
 import { ArtistUploadRequest } from '../types'
 import { deleteArtistProfilePictureFromS3, uploadArtistProfilePictureToS3 } from './aws'
-import { createPreviewImageWithBorder } from './imagePreview'
+import { createPreviewImageWithBorder, createPreviewImageWithoutBorder } from './imagePreview'
 
 export const artistUploadFields = [
   {
@@ -125,7 +126,10 @@ const artistUpload = async ({
     }
   }
 
-  if (fileArtistProfilePicture) {
+  if (config.images.usePreviewBackgroundImage && fileArtistProfilePicture) {
+    const previewImageFile = await createPreviewImageWithoutBorder(fileArtistProfilePicture, 'no-crop')
+    await uploadArtistProfilePictureToS3(id, 'preview', previewImageFile)
+  } else if (fileArtistProfilePicture) {
     const previewImageFile = await createPreviewImageWithBorder(fileArtistProfilePicture)
     await uploadArtistProfilePictureToS3(id, 'preview', previewImageFile)
   }

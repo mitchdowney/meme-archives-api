@@ -40,7 +40,8 @@ export async function queryImageRandomOrderMaterializedView(page: number, imageT
     let images = await imageRepo.find({
       where: {
         id: In(imageIds)
-      }
+      },
+      relations: ['artists', 'tags']
     })
 
     images = images.sort((a, b) => imageIds.indexOf(a.id) - imageIds.indexOf(b.id));

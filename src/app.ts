@@ -15,7 +15,7 @@ import { queryArtistCountMaterializedView, refreshArtistCountMaterializedView } 
 import { addImageToCollection, createCollection, deleteCollection, getCollectionById,
   getCollectionBySlug, getCollections, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
-  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId } from './controllers/image'
+  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId, getRandomImage} from './controllers/image'
 import { queryImageCountMaterializedView, refreshImageCountMaterializedView } from './controllers/imageCountMaterializedView'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { queryTagCountMaterializedView, refreshTagCountMaterializedView } from './controllers/tagCountMaterializedView'
@@ -462,6 +462,21 @@ const startApp = async () => {
         res.send({ message: error.message })
       }
     })
+
+  app.get('/image/get-one-random',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
+      try {
+        const { title, imageType } = req.locals
+        const data = await getRandomImage({ tagTitle: title, imageType })
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    }
+  )
 
   app.get('/image/:id',
     parsePathIntIdOrSlug,

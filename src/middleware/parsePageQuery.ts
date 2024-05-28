@@ -3,7 +3,7 @@ import { ImageType, PageRequest, QuerySort } from '../types'
 import { CollectionQueryType } from '../controllers/collections'
 
 export const parsePageQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
-  const { id, page, imageType, sort } = req.query
+  const { id, page, imageType, sort, title } = req.query
 
   let parsedPage = typeof page === 'string' ? Math.ceil(parseInt(page, 10)) : 1
   parsedPage = parsedPage < 1 ? 1 : parsedPage
@@ -16,11 +16,14 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
   const parsedQuerySort: QuerySort = ['alphabetical', 'reverse-alphabetical', 'newest', 'oldest', 'random']
     .includes(sort as string) ? sort as QuerySort : 'newest'
 
+  const parsedTitle = typeof title === 'string' ? title : null
+
   req.locals = {
     id: parsedId,
     page: parsedPage,
     imageType: parsedImageType,
-    sort: parsedQuerySort
+    sort: parsedQuerySort,
+    title: parsedTitle
   }
 
   await next()

@@ -11,6 +11,7 @@ import { queryImageCountMaterializedView } from './imageCountMaterializedView'
 import { CollectionImage } from '../models/collection_image'
 import { ImageType, QuerySort } from '../types'
 import { queryImageRandomOrderMaterializedView } from './imageRandomOrderMaterializedView'
+import { Tag } from '../models/tag'
 
 export async function getImageMaxId() {
   try {
@@ -238,17 +239,17 @@ export async function getImageBySlug(slug: string) {
 
 export const getImageTypesArray = (imageType: ImageType): string[] => {
   if (imageType === 'painting') {
-    return ['painting', 'painting-and-meme'];
+    return ['painting', 'painting-and-meme']
   } else if (imageType === 'meme') {
-    return ['meme', 'painting-and-meme'];
+    return ['meme', 'painting-and-meme']
   } else {
     return []
   }
 }
 
 const getImageTypeWherePropertyObj = (imageType: ImageType) => {
-  const types = getImageTypesArray(imageType);
-  return types.length > 0 ? { type: In(types) } : {};
+  const types = getImageTypesArray(imageType)
+  return types.length > 0 ? { type: In(types) } : {}
 }
 
 type SearchImage = {
@@ -440,6 +441,52 @@ export async function getImagesByTagId({ page, tagId, imageType }: SearchImagesB
     })
   
     return data
+  } catch (error: unknown) {
+    handleThrowError(error)
+  }
+}
+
+type GetRandomImage = {
+  tagTitle: string
+  imageType: ImageType
+}
+
+export async function getRandomImage({ tagTitle, imageType }: GetRandomImage) {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const whereType = getImageTypesArray(imageType)
+    let query = imageRepo.createQueryBuilder('image')
+      .select('image.id')
+      .orderBy('RANDOM()')
+      .take(1)
+
+    if (tagTitle) {
+      tagTitle = tagTitle.toLowerCase().trim()
+      const tagRepo = appDataSource.getRepository(Tag)
+      const tag = await tagRepo.findOne({ where: { title: tagTitle } })
+
+      if (tag) {
+        query = query.innerJoin('image.tags', 'tags', 'tags.id = :tagId', { tagId: tag.id })
+      }
+    }
+
+    if (whereType.length > 0) {
+      query = query.andWhere('image.type IN (:...types)', { types: whereType })
+    }
+
+    const imageIdResult = await query.getRawOne()
+    const imageId = imageIdResult?.image_id
+
+    if (!imageId) {
+      return null
+    }
+
+    const image = await imageRepo.findOne({
+      where: { id: imageId },
+      relations: ['tags', 'artists']
+    })
+
+    return image
   } catch (error: unknown) {
     handleThrowError(error)
   }

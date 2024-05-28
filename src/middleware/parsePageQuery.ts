@@ -1,38 +1,44 @@
 import { NextFunction, Response } from 'express'
-import { ImageType, PageRequest } from '../types'
-import { CollectionQueryType, CollectionSortType } from '../controllers/collections'
+import { ImageType, PageRequest, QuerySort } from '../types'
+import { CollectionQueryType } from '../controllers/collections'
 
 export const parsePageQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
-  const { id, page, imageType } = req.query
+  const { id, page, imageType, sort } = req.query
 
   let parsedPage = typeof page === 'string' ? Math.ceil(parseInt(page, 10)) : 1
   parsedPage = parsedPage < 1 ? 1 : parsedPage
 
   const parsedId = typeof id === 'string' ? parseInt(id, 10) : null
 
-  let parsedImageType: ImageType = 'painting-and-meme'
-  if (imageType === 'meme') {
-    parsedImageType = 'meme'
-  } else if (imageType === 'painting') {
-    parsedImageType = 'painting'
-  }
+  const parsedImageType: ImageType = ['meme', 'painting'].includes(imageType as string)
+    ? imageType as ImageType : 'painting-and-meme'
+
+  const parsedQuerySort: QuerySort = ['alphabetical', 'reverse-alphabetical', 'newest', 'oldest', 'random']
+    .includes(sort as string) ? sort as QuerySort : 'newest'
 
   req.locals = {
     id: parsedId,
     page: parsedPage,
-    imageType: parsedImageType
+    imageType: parsedImageType,
+    sort: parsedQuerySort
   }
 
   await next()
 }
 
 export const parseCollectionsQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
-  const { sort, type } = req.query
+  const { sort, collectionType } = req.query
+
+  const parsedCollectionType: CollectionQueryType = ['general', 'telegram-stickers', 'discord-stickers', 'stickers', 'all']
+    .includes(collectionType as string) ? collectionType as CollectionQueryType : 'all' 
+
+  const parsedQuerySort: QuerySort = ['alphabetical', 'reverse-alphabetical', 'newest', 'oldest']
+    .includes(sort as string) ? sort as QuerySort : 'newest'
 
   req.locals = {
     ...req.locals,
-    collectionType: type as CollectionQueryType,
-    collectionSort: sort as CollectionSortType
+    collectionType: parsedCollectionType,
+    sort: parsedQuerySort
   }
 
   await next()

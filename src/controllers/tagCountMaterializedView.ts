@@ -2,11 +2,11 @@ import { TagCountMaterializedView } from '../models/tagCountMaterializedView'
 import appDataSource from '../db'
 import { handleLogError } from '../lib/errors'
 
-export async function refreshTagMaterializedView() {
+export async function refreshTagCountMaterializedView() {
   try {
     await appDataSource.manager.query('REFRESH MATERIALIZED VIEW tag_count_materialized_view')
   } catch (error) {
-    handleLogError(`refreshTagMaterializedView error: ${error}`)
+    handleLogError(`refreshTagCountMaterializedView error: ${error}`)
   }
 }
 

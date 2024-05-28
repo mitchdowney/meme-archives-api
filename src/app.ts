@@ -11,14 +11,14 @@ import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth } from 'express-openid-connect'
 import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug, getArtists } from './controllers/artist'
-import { queryArtistCountMaterializedView, refreshArtistMaterializedView } from './controllers/artistCountMaterializedView'
+import { queryArtistCountMaterializedView, refreshArtistCountMaterializedView } from './controllers/artistCountMaterializedView'
 import { addImageToCollection, createCollection, deleteCollection, getCollectionById,
   getCollectionBySlug, getCollections, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
   getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId } from './controllers/image'
-import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
+import { queryImageCountMaterializedView, refreshImageCountMaterializedView } from './controllers/imageCountMaterializedView'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
-import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
+import { queryTagCountMaterializedView, refreshTagCountMaterializedView } from './controllers/tagCountMaterializedView'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
 import { authRequire } from './middleware/authRequire'
@@ -27,6 +27,7 @@ import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
 import { artistUploadFields, artistUploadHandler } from './services/artistImageUpload'
 import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
 import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
+import { refreshImageRandomOrderMaterializedView } from './controllers/imageRandomOrderMaterializedView'
 
 const port = 4321
 
@@ -34,9 +35,10 @@ const startApp = async () => {
   await initAppDataSource()
 
   cron.schedule('*/5 * * * *', async () => {
-    await refreshImageMaterializedView()
-    await refreshTagMaterializedView()
-    await refreshArtistMaterializedView()
+    await refreshImageCountMaterializedView()
+    await refreshTagCountMaterializedView()
+    await refreshArtistCountMaterializedView()
+    await refreshImageRandomOrderMaterializedView()
   })
 
   const multerStorage = multer.memoryStorage()
@@ -350,12 +352,12 @@ const startApp = async () => {
     parseCollectionsQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { collectionSort, collectionType, page } = req.locals
+        const { sort, collectionType, page } = req.locals
         const data = await getCollections({
           page,
           retrieveAll: false,
           type: collectionType,
-          sort: collectionSort
+          sort
         })
         res.status(200)
         res.send(data)
@@ -369,8 +371,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { page, imageType } = req.locals
-        const data = await getImages({ page, imageType })
+        const { page, imageType, sort } = req.locals
+        const data = await getImages({ page, imageType, sort })
         res.status(200)
         res.send(data)
       } catch (error) {
@@ -383,8 +385,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { id: artistId, page } = req.locals
-        const data = await getImagesByArtistId({ artistId, page })
+        const { id: artistId, page, sort } = req.locals
+        const data = await getImagesByArtistId({ artistId, page, sort })
         res.status(200)
         res.send(data)
       } catch (error) {
@@ -455,20 +457,6 @@ const startApp = async () => {
         const data = await queryImageCountMaterializedView()
         res.status(200)
         res.send({ image_count: data })
-      } catch (error) {
-        res.status(400)
-        res.send({ message: error.message })
-      }
-    })
-
-  app.get('/images',
-    parsePageQuery,
-    async function (req: PageRequest, res: Response) {
-      try {
-        const { page, imageType } = req.locals
-        const data = await getImages({ page, imageType })
-        res.status(200)
-        res.send(data)
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

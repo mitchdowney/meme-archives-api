@@ -5,16 +5,16 @@ import { getPaginationQueryParams } from '../lib/pagination'
 import { Collection } from '../models/collection'
 import { getCollectionPreviewImages } from './image'
 import { CollectionImage } from '../models/collection_image'
+import { QuerySort } from '../types'
 
 export type CollectionType = 'general' | 'telegram-stickers' | 'discord-stickers'
 export type CollectionQueryType = 'general' | 'telegram-stickers' | 'discord-stickers' | 'stickers' | 'all'
-export type CollectionSortType = 'alphabetical' | 'reverse-alphabetical' | 'newest' | 'oldest'
 
 type SearchCollection = {
   page: number
   retrieveAll: boolean
   type: CollectionQueryType
-  sort: CollectionSortType
+  sort: QuerySort
 }
 
 export async function getCollections({ page, retrieveAll, type, sort }: SearchCollection) {

@@ -2,14 +2,15 @@ import { DataSource } from 'typeorm'
 import { config } from '../lib/config'
 import { Artist } from '../models/artist'
 import { ArtistCountMaterializedView } from '../models/artistCountMaterializedView'
+import { Collection } from '../models/collection'
+import { CollectionImage } from '../models/collection_image'
 import { Image } from '../models/image'
+import { ImageArtist } from '../models/imageArtist'
 import { ImageCountMaterializedView } from '../models/imageCountMaterializedView'
+import { ImageRandomOrderMaterializedView } from '../models/imageRandomOrderMaterializedView'
 import { ImageTag } from '../models/imageTag'
 import { Tag } from '../models/tag'
 import { TagCountMaterializedView } from '../models/tagCountMaterializedView'
-import { ImageArtist } from '../models/imageArtist'
-import { Collection } from '../models/collection'
-import { CollectionImage } from '../models/collection_image'
 
 const appDataSource = new DataSource({
   type: 'postgres',
@@ -28,6 +29,7 @@ const appDataSource = new DataSource({
     Image,
     ImageArtist,
     ImageCountMaterializedView,
+    ImageRandomOrderMaterializedView,
     ImageTag,
     Tag,
     TagCountMaterializedView

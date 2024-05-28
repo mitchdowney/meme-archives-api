@@ -9,7 +9,9 @@ import { ImageArtist } from '../models/imageArtist'
 import { ImageTag } from '../models/imageTag'
 import { queryImageCountMaterializedView } from './imageCountMaterializedView'
 import { CollectionImage } from '../models/collection_image'
-import { ImageType } from '../types'
+import { ImageType, QuerySort } from '../types'
+import { queryImageRandomOrderMaterializedView } from './imageRandomOrderMaterializedView'
+import { Tag } from '../models/tag'
 
 export async function getImageMaxId() {
   try {
@@ -235,42 +237,60 @@ export async function getImageBySlug(slug: string) {
   }
 }
 
-const getImageTypeWherePropertyObj = (imageType: ImageType) => {
-  if (['painting', 'meme'].includes(imageType)) {
-    if (imageType === 'painting') {
-      return {
-        type: In(['painting', 'painting-and-meme'])
-      }
-    } else {
-      return {
-        type: In(['meme', 'painting-and-meme'])
-      }
-    }
+export const getImageTypesArray = (imageType: ImageType): string[] => {
+  if (imageType === 'painting') {
+    return ['painting', 'painting-and-meme']
+  } else if (imageType === 'meme') {
+    return ['meme', 'painting-and-meme']
   } else {
-    return {}
+    return []
   }
+}
+
+const getImageTypeWherePropertyObj = (imageType: ImageType) => {
+  const types = getImageTypesArray(imageType)
+  return types.length > 0 ? { type: In(types) } : {}
 }
 
 type SearchImage = {
   page: number
   imageType: ImageType
+  sort: QuerySort
 }
 
-export async function getImages({ page, imageType }: SearchImage) {
+const getImagesOrderBy = (sort: QuerySort): { [key: string]: 'ASC' | 'DESC' } => {
+  if (sort === 'alphabetical') {
+    return { title: 'ASC' }
+  } else if (sort === 'reverse-alphabetical') {
+    return { title: 'DESC' }
+  } else if (sort === 'oldest') {
+    return { created_at: 'ASC' }
+  } else {
+    return { created_at: 'DESC' }
+  }
+}
+
+export async function getImages({ page, imageType, sort }: SearchImage) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     const allImagesCount = await queryImageCountMaterializedView()
-    const images = await imageRepo.find({
-      where: {
-        ...getImageTypeWherePropertyObj(imageType)
-      },
-      ...getPaginationQueryParams(page),
-      relations: ['artists', 'tags'],
-      order: {
-        created_at: 'DESC'
-      }
-    })
-  
+
+    let images: Image[]
+    if (sort === 'random') {
+      images = await queryImageRandomOrderMaterializedView(page, imageType)
+    } else {
+      images = await imageRepo.find({
+        where: {
+          ...getImageTypeWherePropertyObj(imageType)
+        },
+        ...getPaginationQueryParams(page),
+        relations: ['artists', 'tags'],
+        order: {
+          ...(getImagesOrderBy(sort))
+        }
+      })
+    }
+
     return [images, allImagesCount]
   } catch (error: unknown) {
     handleThrowError(error)
@@ -280,25 +300,27 @@ export async function getImages({ page, imageType }: SearchImage) {
 type SearchImagesByArtistId = {
   artistId: number
   page: number
+  sort: QuerySort
 }
 
-export async function getImagesByArtistId({ page, artistId }: SearchImagesByArtistId) {
+export async function getImagesByArtistId({ page, artistId, sort }: SearchImagesByArtistId) {
   try {
     const artist = await getArtistById(artistId)
-
     const imageRepo = appDataSource.getRepository(Image)
+    const paginationParams = getPaginationQueryParams(page)
+
     const data = await imageRepo.findAndCount({
       where: {
         artists: artist
       },
-      ...getPaginationQueryParams(page),
+      ...paginationParams,
       relations: ['artists', 'tags'],
       relationLoadStrategy: 'query',
       order: {
-        created_at: 'DESC'
+        ...(getImagesOrderBy(sort))
       }
     })
-  
+
     return data
   } catch (error: unknown) {
     handleThrowError(error)
@@ -419,6 +441,52 @@ export async function getImagesByTagId({ page, tagId, imageType }: SearchImagesB
     })
   
     return data
+  } catch (error: unknown) {
+    handleThrowError(error)
+  }
+}
+
+type GetRandomImage = {
+  tagTitle: string
+  imageType: ImageType
+}
+
+export async function getRandomImage({ tagTitle, imageType }: GetRandomImage) {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const whereType = getImageTypesArray(imageType)
+    let query = imageRepo.createQueryBuilder('image')
+      .select('image.id')
+      .orderBy('RANDOM()')
+      .take(1)
+
+    if (tagTitle) {
+      tagTitle = tagTitle.toLowerCase().trim()
+      const tagRepo = appDataSource.getRepository(Tag)
+      const tag = await tagRepo.findOne({ where: { title: tagTitle } })
+
+      if (tag) {
+        query = query.innerJoin('image.tags', 'tags', 'tags.id = :tagId', { tagId: tag.id })
+      }
+    }
+
+    if (whereType.length > 0) {
+      query = query.andWhere('image.type IN (:...types)', { types: whereType })
+    }
+
+    const imageIdResult = await query.getRawOne()
+    const imageId = imageIdResult?.image_id
+
+    if (!imageId) {
+      return null
+    }
+
+    const image = await imageRepo.findOne({
+      where: { id: imageId },
+      relations: ['tags', 'artists']
+    })
+
+    return image
   } catch (error: unknown) {
     handleThrowError(error)
   }

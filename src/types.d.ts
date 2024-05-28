@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { CollectionQueryType, CollectionSortType } from './controllers/collections'
+import { CollectionQueryType } from './controllers/collections'
 
 export interface PageRequest extends Request {
   locals: {
@@ -7,7 +7,8 @@ export interface PageRequest extends Request {
     page?: number
     imageType?: ImageType
     collectionType?: CollectionQueryType
-    collectionSort?: CollectionSortType
+    sort?: QuerySort
+    title?: string
   }
 }
 
@@ -15,8 +16,6 @@ export interface PathIntIdOrSlugRequest extends Request {
   locals: {
     intId?: number
     slug?: string
-    collectionType?: CollectionQueryType
-    collectionSort?: CollectionSortType
   }
 }
 
@@ -27,6 +26,8 @@ export interface ImageUploadRequest extends Request {
     fileImageNoBorders: Express.Multer.File[]
   }
 }
+
+export type QuerySort = 'alphabetical' | 'reverse-alphabetical' | 'newest' | 'oldest' | 'random'
 
 export type ImageMediumType = 'animation' | 'border' | 'no-border' | 'preview'
 

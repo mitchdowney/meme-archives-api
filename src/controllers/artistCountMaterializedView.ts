@@ -2,11 +2,11 @@ import { ArtistCountMaterializedView } from '../models/artistCountMaterializedVi
 import appDataSource from '../db'
 import { handleLogError } from '../lib/errors'
 
-export async function refreshArtistMaterializedView() {
+export async function refreshArtistCountMaterializedView() {
   try {
     await appDataSource.manager.query('REFRESH MATERIALIZED VIEW artist_count_materialized_view')
   } catch (error) {
-    handleLogError(`refreshArtistMaterializedView error: ${error}`)
+    handleLogError(`refreshArtistCountMaterializedView error: ${error}`)
   }
 }
 

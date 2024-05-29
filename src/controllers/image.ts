@@ -462,6 +462,7 @@ export async function getRandomImage({ tagTitle, imageType }: GetRandomImage) {
     const whereType = getImageTypesArray(imageType)
     let query = imageRepo.createQueryBuilder('image')
       .select('image.id')
+      .where('image.has_video = :hasVideo', { hasVideo: false })
       .orderBy('RANDOM()')
       .take(1)
 

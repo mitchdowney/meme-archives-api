@@ -22,6 +22,9 @@ export class Image {
   @Column({ type: 'boolean', default: false })
   has_no_border: boolean
 
+  @Column({ type: 'boolean', default: false })
+  has_video: boolean
+
   @Column({
     type: 'varchar',
     length: 256,

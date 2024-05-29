@@ -24,12 +24,13 @@ export interface ImageUploadRequest extends Request {
     fileImageAnimations: Express.Multer.File[]
     fileImageBorders: Express.Multer.File[]
     fileImageNoBorders: Express.Multer.File[]
+    fileImageVideos: Express.Multer.File[]
   }
 }
 
 export type QuerySort = 'alphabetical' | 'reverse-alphabetical' | 'newest' | 'oldest' | 'random'
 
-export type ImageMediumType = 'animation' | 'border' | 'no-border' | 'preview'
+export type ImageMediumType = 'animation' | 'border' | 'no-border' | 'preview' | 'video'
 
 export type ImageType = 'painting' | 'meme' | 'painting-and-meme'
 

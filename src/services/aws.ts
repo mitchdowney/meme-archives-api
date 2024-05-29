@@ -43,7 +43,9 @@ export const uploadImageToS3 = async (
 }
 
 const getUploadImageFileName = (imageType: ImageMediumType) => {
-  if (imageType === 'animation') {
+  if (imageType === 'video') {
+    return '-video'
+  } else if (imageType === 'animation') {
     return '-animation'
   } else if (imageType === 'border') {
     return '-border'
@@ -56,7 +58,9 @@ const getUploadImageFileName = (imageType: ImageMediumType) => {
 }
 
 const getUploadImageFileExtension = (imageType: ImageMediumType) => {
-  if (imageType === 'animation') {
+  if (imageType === 'video') {
+    return 'mp4'
+  } else if (imageType === 'animation') {
     return 'gif'
   } else if (
     imageType === 'border' || imageType === 'no-border' || imageType === 'preview') {

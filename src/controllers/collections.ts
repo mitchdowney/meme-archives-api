@@ -251,7 +251,7 @@ export async function deleteCollection(id: number) {
   }
 }
 
-type CollectionImageType = 'no-border' | 'border' | 'animation'
+type CollectionImageType = 'no-border' | 'border' | 'animation' | 'video'
 
 type AddImageToCollection = {
   collection_id: number

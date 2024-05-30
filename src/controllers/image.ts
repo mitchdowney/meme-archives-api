@@ -302,7 +302,7 @@ export async function getImages({ page, imageType, sort, imageMediumType }: Sear
       images = await imageRepo.find({
         where: {
           ...getImageTypeWherePropertyObj(imageType),
-          ...(getImageMediumTypesQueryColumn ? {
+          ...(getImageMediumTypesQueryColumn(imageMediumType) ? {
             [getImageMediumTypesQueryColumn(imageMediumType)]: true
           } : {})
         },
@@ -455,7 +455,7 @@ export async function getImagesByTagId({ page, tagId, imageType, imageMediumType
       where: {
         tags: tag,
         ...getImageTypeWherePropertyObj(imageType),
-        ...(getImageMediumTypesQueryColumn ? {
+        ...(getImageMediumTypesQueryColumn(imageMediumType) ? {
           [getImageMediumTypesQueryColumn(imageMediumType)]: true
         } : {})
       },
@@ -504,7 +504,7 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
     }
 
     const whereMediumType = getImageMediumTypesQueryColumn(imageMediumType)
-    if (whereType.length > 0) {
+    if (whereMediumType) {
       query = query.andWhere(`image.${whereMediumType} IS TRUE`)
     }
 

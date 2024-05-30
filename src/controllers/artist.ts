@@ -62,6 +62,7 @@ export async function getArtists({ page }: GetArtists) {
       'image',
       'ROW(image.id, artist.id) IN (SELECT image_id, artist_id FROM image_artist)'
     )
+    .where('artist.total_images > 0')
     .orderBy('artist.total_images','DESC')
     .skip(skip)
     .take(take)

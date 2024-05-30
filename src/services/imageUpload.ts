@@ -220,33 +220,40 @@ const imagesUpload = async ({
     }
   }
   
-  
   if (fileImageVideo) {
     try {
       const writeFile = util.promisify(fs.writeFile)
       const tempDir = path.join(__dirname, '..', 'tmp')
       const tempVideoPath = path.join(tempDir, 'temp.mp4')
-
+  
       fs.mkdirSync(tempDir, { recursive: true })
-
+  
       await writeFile(tempVideoPath, fileImageVideo.buffer)
-
-      FfmpegCommand(tempVideoPath)
-        .screenshot({
-          count: 1,
-          timestamps: ['0%'],
-          filename: 'screenshot.png',
-          folder: tempDir
-        })
-        .on('end', async () => {
-          const screenshotPath = path.join(tempDir, 'screenshot.png')
-          const screenshotBuffer = fs.readFileSync(screenshotPath)
-          const screenshotFile = arrayBufferToExpressMulterFile(screenshotBuffer, 'temp-screenshot', 'image/png')
-          const previewImageFile = await createPreviewImageWithoutBorder(screenshotFile, 'middle')
-          await uploadImageToS3(id, 'preview', previewImageFile)
-        })
+  
+      await new Promise<void>((resolve, reject) => {
+        FfmpegCommand(tempVideoPath)
+          .screenshot({
+            count: 1,
+            timestamps: ['0%'],
+            filename: 'screenshot.png',
+            folder: tempDir
+          })
+          .on('end', async () => {
+            try {
+              const screenshotPath = path.join(tempDir, 'screenshot.png')
+              const screenshotBuffer = fs.readFileSync(screenshotPath)
+              const screenshotFile = arrayBufferToExpressMulterFile(screenshotBuffer, 'temp-screenshot', 'image/png')
+              const previewImageFile = await createPreviewImageWithoutBorder(screenshotFile, 'middle')
+              await uploadImageToS3(id, 'preview', previewImageFile)
+              resolve()
+            } catch (error) {
+              reject(`Error generating or uploading screenshot: ${error.message}`)
+            }
+          })
+          .on('error', reject)
+      })
     } catch (error) {
-      throw new Error(`Error generating or uploading screenshot: ${error.message}`);
+      throw new Error(`Error generating or uploading screenshot: ${error.message}`)
     }
   } else if (fileImageNoBorder && (!prevent_border_image || allow_preview_border_image)) {
     const previewImageFile = await createPreviewImageWithBorder(fileImageNoBorder)

@@ -371,8 +371,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { page, imageType, sort } = req.locals
-        const data = await getImages({ page, imageType, sort })
+        const { page, imageType, sort, imageMediumType } = req.locals
+        const data = await getImages({ page, imageType, sort, imageMediumType })
         res.status(200)
         res.send(data)
       } catch (error) {
@@ -427,8 +427,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { id: tagId, page, imageType } = req.locals
-        const data = await getImagesByTagId({ tagId, page, imageType })
+        const { id: tagId, page, imageType, imageMediumType } = req.locals
+        const data = await getImagesByTagId({ tagId, page, imageType, imageMediumType })
         res.status(200)
         res.send(data)
       } catch (error) {
@@ -467,8 +467,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { title, imageType } = req.locals
-        const data = await getRandomImage({ tagTitle: title, imageType })
+        const { title, imageType, imageMediumType } = req.locals
+        const data = await getRandomImage({ tagTitle: title, imageType, imageMediumType })
         res.status(200)
         res.send(data)
       } catch (error) {

@@ -8,7 +8,8 @@ export interface PageRequest extends Request {
     imageType?: ImageType
     collectionType?: CollectionQueryType
     sort?: QuerySort
-    title?: string
+    title?: string | null
+    imageMediumType?: ImageMediumType | null
   }
 }
 

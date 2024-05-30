@@ -4,8 +4,8 @@ import { handleLogError, handleThrowError } from '../lib/errors'
 import { getPaginationQueryParams } from '../lib/pagination'
 import { Image } from '../models/image'
 import { ImageRandomOrderMaterializedView } from '../models/imageRandomOrderMaterializedView'
-import { ImageType } from '../types'
-import { getImageTypesArray } from './image'
+import { ImageMediumType, ImageType } from '../types'
+import { getImageMediumTypesQueryColumn, getImageTypesArray } from './image'
 
 export async function refreshImageRandomOrderMaterializedView() {
   try {
@@ -15,7 +15,7 @@ export async function refreshImageRandomOrderMaterializedView() {
   }
 }
 
-export async function queryImageRandomOrderMaterializedView(page: number, imageType: ImageType) {
+export async function queryImageRandomOrderMaterializedView(page: number, imageType: ImageType, imageMediumType: ImageMediumType): Promise<Image[]> {
   try {
     const imageRandomOrderMaterializedViewRepo = appDataSource.getRepository(ImageRandomOrderMaterializedView)
     const paginationParams = getPaginationQueryParams(page)
@@ -32,6 +32,11 @@ export async function queryImageRandomOrderMaterializedView(page: number, imageT
       query = query.where('image_random_order_materialized_view.type IN (:...types)', { types: whereType })
     }
 
+    const whereMediumType = getImageMediumTypesQueryColumn(imageMediumType)
+    if (whereMediumType) {
+      query = query.andWhere(`image_random_order_materialized_view.${whereMediumType} IS TRUE`)
+    }
+
     const ids = await query.getRawMany()
 
     const imageIds = ids.map(row => row.image_random_order_materialized_view_id)
@@ -44,7 +49,7 @@ export async function queryImageRandomOrderMaterializedView(page: number, imageT
       relations: ['artists', 'tags']
     })
 
-    images = images.sort((a, b) => imageIds.indexOf(a.id) - imageIds.indexOf(b.id));
+    images = images.sort((a, b) => imageIds.indexOf(a.id) - imageIds.indexOf(b.id))
 
     return images
   } catch (error) {

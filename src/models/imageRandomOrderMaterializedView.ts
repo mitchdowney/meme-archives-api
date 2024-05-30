@@ -14,4 +14,16 @@ export class ImageRandomOrderMaterializedView {
 
   @ViewColumn()
   type: ImageType
+
+  @ViewColumn()
+  has_animation: boolean
+
+  @ViewColumn()
+  has_border: boolean
+
+  @ViewColumn()
+  has_no_border: boolean
+
+  @ViewColumn()
+  has_video: boolean
 }

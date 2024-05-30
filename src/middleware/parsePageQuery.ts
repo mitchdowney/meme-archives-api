@@ -1,9 +1,9 @@
 import { NextFunction, Response } from 'express'
-import { ImageType, PageRequest, QuerySort } from '../types'
+import { ImageMediumType, ImageType, PageRequest, QuerySort } from '../types'
 import { CollectionQueryType } from '../controllers/collections'
 
 export const parsePageQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
-  const { id, page, imageType, sort, title } = req.query
+  const { id, page, imageType, imageMediumType, sort, title } = req.query
 
   let parsedPage = typeof page === 'string' ? Math.ceil(parseInt(page, 10)) : 1
   parsedPage = parsedPage < 1 ? 1 : parsedPage
@@ -12,6 +12,9 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
 
   const parsedImageType: ImageType = ['meme', 'painting'].includes(imageType as string)
     ? imageType as ImageType : 'painting-and-meme'
+
+  const parsedImageMediumType: ImageMediumType | null = ['animation', 'border', 'no-border', 'video'].includes(imageMediumType as string)
+    ? imageMediumType as ImageMediumType : null
 
   const parsedQuerySort: QuerySort = ['alphabetical', 'reverse-alphabetical', 'newest', 'oldest', 'random']
     .includes(sort as string) ? sort as QuerySort : 'newest'
@@ -22,6 +25,7 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
     id: parsedId,
     page: parsedPage,
     imageType: parsedImageType,
+    imageMediumType: parsedImageMediumType,
     sort: parsedQuerySort,
     title: parsedTitle
   }

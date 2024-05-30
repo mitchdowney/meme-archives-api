@@ -9,7 +9,7 @@ import { ImageArtist } from '../models/imageArtist'
 import { ImageTag } from '../models/imageTag'
 import { queryImageCountMaterializedView } from './imageCountMaterializedView'
 import { CollectionImage } from '../models/collection_image'
-import { ImageType, QuerySort } from '../types'
+import { ImageMediumType, ImageType, QuerySort } from '../types'
 import { queryImageRandomOrderMaterializedView } from './imageRandomOrderMaterializedView'
 import { Tag } from '../models/tag'
 
@@ -252,6 +252,20 @@ export const getImageTypesArray = (imageType: ImageType): string[] => {
   }
 }
 
+export const getImageMediumTypesQueryColumn = (imageMediumType: ImageMediumType | null): string => {
+  if (imageMediumType === 'animation') {
+    return 'has_animation'
+  } else if (imageMediumType === 'border') {
+    return 'has_border'
+  } else if (imageMediumType === 'no-border') {
+    return 'has_no_border'
+  } else if (imageMediumType === 'video') {
+    return 'has_video'
+  } else {
+    return ''
+  }
+}
+
 const getImageTypeWherePropertyObj = (imageType: ImageType) => {
   const types = getImageTypesArray(imageType)
   return types.length > 0 ? { type: In(types) } : {}
@@ -261,6 +275,7 @@ type SearchImage = {
   page: number
   imageType: ImageType
   sort: QuerySort
+  imageMediumType: ImageMediumType
 }
 
 const getImagesOrderBy = (sort: QuerySort): { [key: string]: 'ASC' | 'DESC' } => {
@@ -275,18 +290,21 @@ const getImagesOrderBy = (sort: QuerySort): { [key: string]: 'ASC' | 'DESC' } =>
   }
 }
 
-export async function getImages({ page, imageType, sort }: SearchImage) {
+export async function getImages({ page, imageType, sort, imageMediumType }: SearchImage) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     const allImagesCount = await queryImageCountMaterializedView()
 
     let images: Image[]
     if (sort === 'random') {
-      images = await queryImageRandomOrderMaterializedView(page, imageType)
+      images = await queryImageRandomOrderMaterializedView(page, imageType, imageMediumType)
     } else {
       images = await imageRepo.find({
         where: {
-          ...getImageTypeWherePropertyObj(imageType)
+          ...getImageTypeWherePropertyObj(imageType),
+          ...(getImageMediumTypesQueryColumn ? {
+            [getImageMediumTypesQueryColumn(imageMediumType)]: true
+          } : {})
         },
         ...getPaginationQueryParams(page),
         relations: ['artists', 'tags'],
@@ -425,9 +443,10 @@ type SearchImagesByTagId = {
   tagId: number
   page: number
   imageType: ImageType
+  imageMediumType: ImageMediumType
 }
 
-export async function getImagesByTagId({ page, tagId, imageType }: SearchImagesByTagId) {
+export async function getImagesByTagId({ page, tagId, imageType, imageMediumType }: SearchImagesByTagId) {
   try {
     const tag = await getTagById(tagId)
 
@@ -435,7 +454,10 @@ export async function getImagesByTagId({ page, tagId, imageType }: SearchImagesB
     const data = await imageRepo.findAndCount({
       where: {
         tags: tag,
-        ...getImageTypeWherePropertyObj(imageType)
+        ...getImageTypeWherePropertyObj(imageType),
+        ...(getImageMediumTypesQueryColumn ? {
+          [getImageMediumTypesQueryColumn(imageMediumType)]: true
+        } : {})
       },
       ...getPaginationQueryParams(page),
       relations: ['artists', 'tags'],
@@ -454,30 +476,36 @@ export async function getImagesByTagId({ page, tagId, imageType }: SearchImagesB
 type GetRandomImage = {
   tagTitle: string
   imageType: ImageType
+  imageMediumType: ImageMediumType | null
 }
 
-export async function getRandomImage({ tagTitle, imageType }: GetRandomImage) {
+export async function getRandomImage({ tagTitle, imageType, imageMediumType }: GetRandomImage) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
-    const whereType = getImageTypesArray(imageType)
     let query = imageRepo.createQueryBuilder('image')
       .select('image.id')
       .where('image.has_video = :hasVideo', { hasVideo: false })
       .orderBy('RANDOM()')
       .take(1)
-
+    
     if (tagTitle) {
       tagTitle = tagTitle.toLowerCase().trim()
       const tagRepo = appDataSource.getRepository(Tag)
       const tag = await tagRepo.findOne({ where: { title: tagTitle } })
-
+      
       if (tag) {
         query = query.innerJoin('image.tags', 'tags', 'tags.id = :tagId', { tagId: tag.id })
       }
     }
-
+    
+    const whereType = getImageTypesArray(imageType)
     if (whereType.length > 0) {
       query = query.andWhere('image.type IN (:...types)', { types: whereType })
+    }
+
+    const whereMediumType = getImageMediumTypesQueryColumn(imageMediumType)
+    if (whereType.length > 0) {
+      query = query.andWhere(`image.${whereMediumType} IS TRUE`)
     }
 
     const imageIdResult = await query.getRawOne()

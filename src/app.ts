@@ -10,7 +10,7 @@ const cron = require('node-cron')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth } from 'express-openid-connect'
-import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug, getArtists } from './controllers/artist'
+import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug, getArtists, updateArtistTotalImages } from './controllers/artist'
 import { queryArtistCountMaterializedView, refreshArtistCountMaterializedView } from './controllers/artistCountMaterializedView'
 import { addImageToCollection, createCollection, deleteCollection, getCollectionById,
   getCollectionBySlug, getCollections, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
@@ -34,11 +34,12 @@ const port = 4321
 const startApp = async () => {
   await initAppDataSource()
 
-  cron.schedule('*/5 * * * *', async () => {
+  cron.schedule('*/6 * * * *', async () => {
     await refreshImageCountMaterializedView()
     await refreshTagCountMaterializedView()
     await refreshArtistCountMaterializedView()
     await refreshImageRandomOrderMaterializedView()
+    await updateArtistTotalImages()
   })
 
   const multerStorage = multer.memoryStorage()

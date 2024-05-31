@@ -159,3 +159,14 @@ export async function updateArtist({
     handleThrowError(error)
   }
 }
+
+export const updateArtistTotalImages = async () => {
+  await appDataSource.manager.query(`
+    UPDATE artist
+    SET total_images = (
+      SELECT COUNT(*)
+      FROM image_artist
+      WHERE artist.id = image_artist.artist_id
+    );
+  `)
+}

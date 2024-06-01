@@ -17,6 +17,7 @@ import { addImageToCollection, createCollection, deleteCollection, getCollection
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
   getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId, getRandomImage} from './controllers/image'
 import { queryImageCountMaterializedView, refreshImageCountMaterializedView } from './controllers/imageCountMaterializedView'
+import { refreshImageRandomOrderMaterializedView } from './controllers/imageRandomOrderMaterializedView'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { queryTagCountMaterializedView, refreshTagCountMaterializedView } from './controllers/tagCountMaterializedView'
 import { initAppDataSource } from './db'
@@ -24,10 +25,11 @@ import { config } from './lib/config'
 import { authRequire } from './middleware/authRequire'
 import { parseCollectionsQuery, parsePageQuery } from './middleware/parsePageQuery'
 import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
+import { Image } from './models/image'
 import { artistUploadFields, artistUploadHandler } from './services/artistImageUpload'
 import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
+import { removeBackgroundFromPngImage } from './services/rembg'
 import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
-import { refreshImageRandomOrderMaterializedView } from './controllers/imageRandomOrderMaterializedView'
 
 const port = 4321
 
@@ -559,6 +561,36 @@ const startApp = async () => {
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })
+      }
+    })
+
+  app.get('/rembg/:id',
+    authRequire,
+    parsePathIntIdOrSlug,
+    async (req: PathIntIdOrSlugRequest, res: Response) => {
+      try {
+        // Assuming the image data is sent in the request body
+        const { intId, slug } = req.locals
+
+        let image: Image | null = null
+        if (!intId && slug) {
+          image = await getImageBySlug(slug)
+        } else if (intId) {
+          image = await getImageById(intId)
+        }
+
+        if (!image?.id) {
+          res.status(404)
+          res.send({ message: 'Image not found' })
+          return
+        }
+
+        await removeBackgroundFromPngImage(image.id)
+        res.status(200)
+        res.send({ message: 'Background removed' })
+      } catch (error) {
+        console.error(`Error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to remove background' });
       }
     })
 

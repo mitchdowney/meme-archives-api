@@ -26,7 +26,7 @@ export const removeBackgroundFromPngImage = async (imageId: number) => {
   const outputFilePath = path.join(tempDir, outputFilename)
   
   const execAsync = util.promisify(exec)
-  const { stderr } = await execAsync(`rembg i ${filePath} ${outputFilePath}`)
+  const { stderr } = await execAsync(`/opt/venv/bin/rembg i ${filePath} ${outputFilePath}`)
 
   if (stderr) {
     throw new Error(`removeBackgroundFromPngImage error: ${stderr}`)

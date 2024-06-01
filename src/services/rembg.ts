@@ -7,6 +7,7 @@ import { exec } from 'child_process'
 import * as util from 'util'
 import { getImageFromS3, uploadImageToS3 } from './aws'
 import { arrayBufferToExpressMulterFile } from '../lib/multer'
+import { handleLogError } from '../lib/errors'
 
 export const removeBackgroundFromPngImage = async (imageId: number) => {
   try {
@@ -40,7 +41,8 @@ export const removeBackgroundFromPngImage = async (imageId: number) => {
     await fs.promises.unlink(filePath)
     await fs.promises.unlink(outputFilePath)
   } catch (error) {
-    console.log('removeBackgroundFromPngImage error', error)
+    handleLogError('removeBackgroundFromPngImage error')
+    handleLogError(error)
     throw new Error(`removeBackgroundFromPngImage error message: ${error.message}`)
   }
 }

@@ -9,5 +9,8 @@
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "strictNullChecks": false
-  }
+  },
+  "exclude": [
+    "scripts"
+  ]
 }

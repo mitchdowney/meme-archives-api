@@ -1,10 +1,21 @@
-FROM node:20
+FROM nvidia/cuda:12.5.0-base-ubuntu22.04
 
 WORKDIR /app
 
-# Install Python, pip and create a virtual environment
-RUN apt-get update && apt-get install -y ffmpeg python3 python3-pip python3-venv && \
-    python3 -m venv /opt/venv
+# Install base packages
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    python3 \
+    python3-pip \
+    python3-venv \
+    curl
+
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
+
+# Create a virtual environment
+RUN python3 -m venv /opt/venv
 
 # Copy requirements.txt and install Python dependencies
 COPY ./requirements.txt .

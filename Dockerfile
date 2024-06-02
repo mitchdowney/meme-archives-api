@@ -21,6 +21,10 @@ RUN python3 -m venv /opt/venv
 COPY ./requirements.txt .
 RUN /bin/bash -c "source /opt/venv/bin/activate && pip install -r requirements.txt"
 
+# Permissions needed by the rembg library
+RUN mkdir -p /root/.u2net/ && \
+    curl -L -o /root/.u2net/u2net.onnx https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx
+
 # Copy package.json and package-lock.json and install Node.js dependencies
 COPY package*.json ./
 RUN npm install

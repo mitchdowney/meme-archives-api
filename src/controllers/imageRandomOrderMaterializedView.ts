@@ -6,6 +6,7 @@ import { Image } from '../models/image'
 import { ImageRandomOrderMaterializedView } from '../models/imageRandomOrderMaterializedView'
 import { ImageMediumType, ImageType } from '../types'
 import { getImageMediumTypesQueryColumn, getImageTypesArray } from './image'
+import { ImageArtist } from '../models/imageArtist'
 
 export async function refreshImageRandomOrderMaterializedView() {
   try {
@@ -54,5 +55,42 @@ export async function queryImageRandomOrderMaterializedView(page: number, imageT
     return images
   } catch (error) {
     handleThrowError(`queryImageRandomOrderMaterializedView error: ${error}`)
+  }
+}
+
+export async function queryRandomImagesByArtistPaginated(page: number, artist_id: number): Promise<[Image[], number]> {
+  try {
+    const imageArtistJoinRepo = appDataSource.getRepository(ImageArtist)
+    const imageRandomOrderMaterializedViewRepo = appDataSource.getRepository(ImageRandomOrderMaterializedView)
+    const imageRepo = appDataSource.getRepository(Image)
+
+    const imageArtistJoins = await imageArtistJoinRepo.find({ where: { artist_id } })
+    const imageIds = imageArtistJoins.map(join => join.image_id)
+    const imageCount = imageIds?.length
+
+    const imagesInView = await imageRandomOrderMaterializedViewRepo
+      .createQueryBuilder('image_random_order_materialized_view')
+      .select('image_random_order_materialized_view.id')
+      .where('image_random_order_materialized_view.id IN (:...ids)', { ids: imageIds })
+      .getRawMany()
+
+    const viewImageIds = imagesInView.map(row => row.image_random_order_materialized_view_id)
+
+    const paginationParams = getPaginationQueryParams(page)
+
+    const paginatedImageIds = viewImageIds.slice(paginationParams.skip, paginationParams.skip + paginationParams.take)
+
+    let images = await imageRepo.find({
+      where: {
+        id: In(paginatedImageIds)
+      },
+      relations: ['artists', 'tags']
+    })
+
+    images = images.sort((a, b) => paginatedImageIds.indexOf(a.id) - paginatedImageIds.indexOf(b.id))
+
+    return [images, imageCount]
+  } catch (error) {
+    handleThrowError(`queryImagesByArtistPaginated error: ${error}`)
   }
 }

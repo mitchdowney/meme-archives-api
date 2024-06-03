@@ -10,7 +10,7 @@ import { ImageTag } from '../models/imageTag'
 import { queryImageCountMaterializedView } from './imageCountMaterializedView'
 import { CollectionImage } from '../models/collection_image'
 import { ImageMediumType, ImageType, QuerySort } from '../types'
-import { queryImageRandomOrderMaterializedView } from './imageRandomOrderMaterializedView'
+import { queryImageRandomOrderMaterializedView, queryRandomImagesByArtistPaginated } from './imageRandomOrderMaterializedView'
 import { Tag } from '../models/tag'
 
 export async function getImageMaxId() {
@@ -331,18 +331,23 @@ export async function getImagesByArtistId({ page, artistId, sort }: SearchImages
     const artist = await getArtistById(artistId)
     const imageRepo = appDataSource.getRepository(Image)
     const paginationParams = getPaginationQueryParams(page)
+    let data: [Image[], number] = [[], 0]
 
-    const data = await imageRepo.findAndCount({
-      where: {
-        artists: artist
-      },
-      ...paginationParams,
-      relations: ['artists', 'tags'],
-      relationLoadStrategy: 'query',
-      order: {
-        ...(getImagesOrderBy(sort))
-      }
-    })
+    if (sort === 'random') {
+      data = await queryRandomImagesByArtistPaginated(page, artistId)
+    } else {
+      data = await imageRepo.findAndCount({
+        where: {
+          artists: artist
+        },
+        ...paginationParams,
+        relations: ['artists', 'tags'],
+        relationLoadStrategy: 'query',
+        order: {
+          ...(getImagesOrderBy(sort))
+        }
+      })
+    }
 
     return data
   } catch (error: unknown) {

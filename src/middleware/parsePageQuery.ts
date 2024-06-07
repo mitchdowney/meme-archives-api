@@ -36,7 +36,7 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
 export const parseCollectionsQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
   const { sort, collectionType } = req.query
 
-  const parsedCollectionType: CollectionQueryType = ['general', 'telegram-stickers', 'discord-stickers', 'stickers', 'all']
+  const parsedCollectionType: CollectionQueryType = ['general', 'telegram-stickers', 'discord-stickers', 'stickers', 'meme-maker', 'all']
     .includes(collectionType as string) ? collectionType as CollectionQueryType : 'all' 
 
   const parsedQuerySort: QuerySort = ['alphabetical', 'reverse-alphabetical', 'newest', 'oldest']

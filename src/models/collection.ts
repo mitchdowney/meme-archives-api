@@ -24,7 +24,7 @@ export class Collection {
   })
   title: string | null
 
-  @Column({ length: 20, default: 'general', enum: ['general', 'telegram-stickers', 'discord-stickers'] })
+  @Column({ length: 20, default: 'general', enum: ['general', 'telegram-stickers', 'discord-stickers', 'meme-maker'] })
   type: string
 
   @ManyToMany(() => Image, { cascade: true })

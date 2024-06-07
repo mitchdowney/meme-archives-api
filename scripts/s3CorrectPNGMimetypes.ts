@@ -11,30 +11,39 @@ const s3 = new S3({
 })
 
 async function updateContentType(bucketName, prefix = '') {
-  const listParams = {
-    Bucket: bucketName,
-    Prefix: prefix
-  };
-
-  const data = await s3.listObjectsV2(listParams).promise();
+  let isTruncated = true;
+  let continuationToken;
 
   // Regular expression to match file names like 1.png, 2.png, 3.png, etc.
   const pattern = /^\d+\.png$/;
 
-  for (const item of data.Contents) {
-    // Only update the ContentType for files that match the pattern
-    if (pattern.test(item.Key)) {
-      const copyParams = {
-        Bucket: bucketName,
-        CopySource: `${bucketName}/${item.Key}`,
-        Key: item.Key,
-        ContentType: 'image/png',
-        MetadataDirective: 'REPLACE'
-      };
+  while (isTruncated) {
+    const listParams = {
+      Bucket: bucketName,
+      Prefix: prefix,
+      ContinuationToken: continuationToken
+    };
 
-      await s3.copyObject(copyParams).promise();
-      console.log(`Updated ContentType for ${item.Key}`);
+    const data = await s3.listObjectsV2(listParams).promise();
+
+    for (const item of data.Contents) {
+      // Only update the ContentType for files that match the pattern
+      if (pattern.test(item.Key)) {
+        const copyParams = {
+          Bucket: bucketName,
+          CopySource: `${bucketName}/${item.Key}`,
+          Key: item.Key,
+          ContentType: 'image/png',
+          MetadataDirective: 'REPLACE'
+        };
+
+        await s3.copyObject(copyParams).promise();
+        console.log(`Updated ContentType for ${item.Key}`);
+      }
     }
+
+    isTruncated = data.IsTruncated;
+    continuationToken = data.NextContinuationToken;
   }
 }
 

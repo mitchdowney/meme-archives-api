@@ -7,8 +7,8 @@ import { getCollectionPreviewImages } from './image'
 import { CollectionImage } from '../models/collection_image'
 import { QuerySort } from '../types'
 
-export type CollectionType = 'general' | 'telegram-stickers' | 'discord-stickers'
-export type CollectionQueryType = 'general' | 'telegram-stickers' | 'discord-stickers' | 'stickers' | 'all'
+export type CollectionType = 'general' | 'telegram-stickers' | 'discord-stickers' | 'meme-maker'
+export type CollectionQueryType = 'general' | 'telegram-stickers' | 'discord-stickers' | 'stickers' | 'meme-maker' | 'all'
 
 type SearchCollection = {
   page: number
@@ -63,6 +63,8 @@ export async function getCollections({ page, retrieveAll, type, sort }: SearchCo
       queryCollections += ' WHERE c.type = \'discord-stickers\''
     } else if (type === 'stickers') {
       queryCollections += ' WHERE c.type IN (\'telegram-stickers\', \'discord-stickers\')'
+    } else if (type === 'meme-maker') {
+      queryCollections += ' WHERE c.type = \'meme-maker\''
     }
 
     queryCollections += ' GROUP BY c.id'
@@ -88,6 +90,8 @@ export async function getCollections({ page, retrieveAll, type, sort }: SearchCo
       queryCount += ' WHERE c.type = \'discord-stickers\''
     } else if (type === 'stickers') {
       queryCount += ' WHERE c.type IN (\'telegram-stickers\', \'discord-stickers\')'
+    } else if (type === 'meme-maker') {
+      queryCount += ' WHERE c.type = \'meme-maker\''
     }
 
     let take = 0

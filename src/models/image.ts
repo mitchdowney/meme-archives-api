@@ -66,6 +66,18 @@ export class Image {
   })
   tags: Tag[]
 
+  /*
+    This column is intended to prevent duplicate images from being returned
+    consecutively when "get by random" commands are used.
+  */
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: false,
+    name: 'last_get_random_date'
+  })
+  last_get_random_date: Date
+
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date
 

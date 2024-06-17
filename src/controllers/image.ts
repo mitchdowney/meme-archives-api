@@ -489,9 +489,10 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
     const imageRepo = appDataSource.getRepository(Image)
     let query = imageRepo.createQueryBuilder('image')
       .select('image.id')
-      .where('image.has_video = :hasVideo', { hasVideo: false })
-      .orderBy('RANDOM()')
-      .take(1)
+
+    query = query.where('image.has_video = :hasVideo', { hasVideo: false })
+
+    let tagPresent = false
     
     if (tagTitle) {
       tagTitle = tagTitle.toLowerCase().trim()
@@ -499,10 +500,19 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
       const tag = await tagRepo.findOne({ where: { title: tagTitle } })
       
       if (tag) {
+        tagPresent = true
         query = query.innerJoin('image.tags', 'tags', 'tags.id = :tagId', { tagId: tag.id })
       }
     }
     
+    if (tagPresent) {
+      query = query.orderBy('image.last_get_random_date', 'ASC')
+    } else {
+      query = query.orderBy('RANDOM()')
+    }
+
+    query = query.take(1)
+
     const whereType = getImageTypesArray(imageType)
     if (whereType.length > 0) {
       query = query.andWhere('image.type IN (:...types)', { types: whereType })
@@ -524,6 +534,11 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
       where: { id: imageId },
       relations: ['tags', 'artists']
     })
+
+    if (image) {
+      image.last_get_random_date = new Date()
+      await imageRepo.update(image.id, { last_get_random_date: image.last_get_random_date })
+    }
 
     return image
   } catch (error: unknown) {

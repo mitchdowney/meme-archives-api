@@ -46,7 +46,7 @@ CREATE TABLE CardCollectible (
 
 ALTER TABLE CardCollectible ADD CONSTRAINT unique_edition_per_set UNIQUE (edition, cardCollectionSetId);
 
-CREATE TABLE TelegramUserCollectible (
+CREATE TABLE telegramUserCardCollectible (
     telegramUserId VARCHAR(255),
     cardCollectibleId INTEGER,
     PRIMARY KEY (telegramUserId, cardCollectibleId),

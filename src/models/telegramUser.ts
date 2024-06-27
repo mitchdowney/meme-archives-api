@@ -1,5 +1,6 @@
 /* eslint-disable indent */
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm'
+import { TelegramUserCardCollectible } from './telegramUserCardCollectible'
 
 @Entity('TelegramUser')
 export class TelegramUser {
@@ -14,6 +15,9 @@ export class TelegramUser {
 
   @Column({ length: 255, unique: true })
   slug: string
+
+  @OneToMany(() => TelegramUserCardCollectible, (telegramUserCardCollectible) => telegramUserCardCollectible.telegramUser)
+  telegramUserCardCollectibles: TelegramUserCardCollectible[]
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date

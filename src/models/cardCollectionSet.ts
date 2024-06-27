@@ -1,6 +1,7 @@
 /* eslint-disable indent */
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm'
 import { CardCollection } from './cardCollection'
+import { CardCollectible } from './cardCollectible'
 
 @Entity('CardCollectionSet')
 export class CardCollectionSet {
@@ -19,6 +20,9 @@ export class CardCollectionSet {
 
   @Column()
   cardCollectionId: number
+
+  @OneToMany(() => CardCollectible, (cardCollectible) => cardCollectible.cardCollectionSet)
+  cardCollectibles: CardCollectible[]
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   dateCreated: Date

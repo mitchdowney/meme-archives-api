@@ -1,6 +1,8 @@
 /* eslint-disable indent */
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Enum } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn,
+  UpdateDateColumn, OneToMany } from 'typeorm'
 import { CardCollectionSet } from './cardCollectionSet'
+import { TelegramUserCardCollectible } from './telegramUserCardCollectible'
 
 enum EditionType {
   Normal = 'normal',
@@ -41,6 +43,9 @@ export class CardCollectible {
 
   @Column()
   cardCollectionSetId: number
+
+  @OneToMany(() => TelegramUserCardCollectible, (telegramUserCardCollectible) => telegramUserCardCollectible.telegramUser)
+  telegramUserCardCollectibles: TelegramUserCardCollectible[]
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date

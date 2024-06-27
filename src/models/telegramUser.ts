@@ -25,3 +25,4 @@ export class TelegramUser {
   @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date
 }
+

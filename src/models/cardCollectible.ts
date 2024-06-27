@@ -4,7 +4,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDa
 import { CardCollectionSet } from './cardCollectionSet'
 import { TelegramUserCardCollectible } from './telegramUserCardCollectible'
 
-enum EditionType {
+export enum CardCollectibleEditionType {
   Normal = 'normal',
   Foil = 'foil',
   Gold = 'gold'
@@ -26,10 +26,10 @@ export class CardCollectible {
   
   @Column({
     type: 'enum',
-    enum: EditionType,
+    enum: CardCollectibleEditionType,
     enumName: 'edition_type'
   })
-  edition: EditionType
+  edition: CardCollectibleEditionType
 
   @Column('text', { name: 'about' })
   description: string

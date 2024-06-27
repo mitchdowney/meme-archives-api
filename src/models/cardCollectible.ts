@@ -25,7 +25,7 @@ export class CardCollectible {
   @Column({
     type: 'enum',
     enum: EditionType,
-    enumName: 'edition_type',
+    enumName: 'edition_type'
   })
   edition: EditionType
 

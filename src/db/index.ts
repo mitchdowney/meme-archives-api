@@ -2,6 +2,9 @@ import { DataSource } from 'typeorm'
 import { config } from '../lib/config'
 import { Artist } from '../models/artist'
 import { ArtistCountMaterializedView } from '../models/artistCountMaterializedView'
+import { CardCollectible } from '../models/cardCollectible'
+import { CardCollection } from '../models/cardCollection'
+import { CardCollectionSet } from '../models/cardCollectionSet'
 import { Collection } from '../models/collection'
 import { CollectionImage } from '../models/collection_image'
 import { Image } from '../models/image'
@@ -11,6 +14,8 @@ import { ImageRandomOrderMaterializedView } from '../models/imageRandomOrderMate
 import { ImageTag } from '../models/imageTag'
 import { Tag } from '../models/tag'
 import { TagCountMaterializedView } from '../models/tagCountMaterializedView'
+import { TelegramUser } from '../models/telegramUser'
+import { TelegramUserCardCollectible } from '../models/telegramUserCardCollectible'
 
 const appDataSource = new DataSource({
   type: 'postgres',
@@ -24,6 +29,9 @@ const appDataSource = new DataSource({
   entities: [
     Artist,
     ArtistCountMaterializedView,
+    CardCollectible,
+    CardCollection,
+    CardCollectionSet,
     Collection,
     CollectionImage,
     Image,
@@ -32,7 +40,9 @@ const appDataSource = new DataSource({
     ImageRandomOrderMaterializedView,
     ImageTag,
     Tag,
-    TagCountMaterializedView
+    TagCountMaterializedView,
+    TelegramUser,
+    TelegramUserCardCollectible
   ]
 })
 

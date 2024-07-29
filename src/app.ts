@@ -506,26 +506,6 @@ const startApp = async () => {
       }
     })
 
-  /*
-    Using POST for this delete endpoint instead of DELETE
-    because I was getting a CORS issue from Auth0 when I
-    tried to use the DELETE request method.
-  */
-  app.post('/image/delete/:id',
-    authRequire,
-    parsePathIntIdOrSlug,
-    async function (req: PathIntIdOrSlugRequest, res: Response) {
-      try {
-        const { intId } = req.locals
-        await deleteS3ImageAndDBImage(intId)
-        res.status(201)
-        res.send({ message: 'Image successfully deleted' })
-      } catch (error) {
-        res.status(400)
-        res.send({ message: error.message })
-      }
-    })
-
   app.post('/image/delete/daumen',
     authRequire,
     async function (req: Request, res: Response) {
@@ -547,6 +527,26 @@ const startApp = async () => {
           message: 'Image successfully deleted',
           image: randomDaumen
         })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  /*
+    Using POST for this delete endpoint instead of DELETE
+    because I was getting a CORS issue from Auth0 when I
+    tried to use the DELETE request method.
+  */
+  app.post('/image/delete/:id',
+    authRequire,
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { intId } = req.locals
+        await deleteS3ImageAndDBImage(intId)
+        res.status(201)
+        res.send({ message: 'Image successfully deleted' })
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

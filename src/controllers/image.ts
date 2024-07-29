@@ -492,7 +492,7 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
 
     query = query.where('image.has_video = :hasVideo', { hasVideo: false })
 
-    let tagPresent = false
+    // let tagPresent = false
     
     if (tagTitle) {
       tagTitle = tagTitle.toLowerCase().trim()
@@ -500,16 +500,16 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
       const tag = await tagRepo.findOne({ where: { title: tagTitle } })
       
       if (tag) {
-        tagPresent = true
+        // tagPresent = true
         query = query.innerJoin('image.tags', 'tags', 'tags.id = :tagId', { tagId: tag.id })
       }
     }
     
-    if (tagPresent) {
-      query = query.orderBy('image.last_get_random_date', 'ASC')
-    } else {
-      query = query.orderBy('RANDOM()')
-    }
+    // if (tagPresent) {
+    query = query.orderBy('image.last_get_random_date', 'ASC')
+    // } else {
+    //   query = query.orderBy('RANDOM()')
+    // }
 
     query = query.take(1)
 

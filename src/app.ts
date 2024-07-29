@@ -526,6 +526,33 @@ const startApp = async () => {
       }
     })
 
+  app.post('/image/delete/daumen',
+    authRequire,
+    async function (req: Request, res: Response) {
+      try {
+        const randomDaumen = await getRandomImage({
+          tagTitle: 'daumen',
+          imageType: 'painting',
+          imageMediumType: null
+
+        })
+
+        if (!randomDaumen) {
+          throw new Error('No daumen image found')
+        }
+
+        await deleteS3ImageAndDBImage(randomDaumen.id)
+        res.status(201)
+        res.send({
+          message: 'Image successfully deleted',
+          image: randomDaumen
+        })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
   app.post('/image/update',
     authRequire,
     multerUpload.fields(imageUploadFields),

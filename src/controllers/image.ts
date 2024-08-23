@@ -545,3 +545,26 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
     handleThrowError(error)
   }
 }
+
+export async function updateImageLastGetRandomDate() {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const images = await imageRepo.find()
+
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+
+    const fourDaysAgo = new Date()
+    fourDaysAgo.setDate(fourDaysAgo.getDate() - 4)
+
+    for (const image of images) {
+      const randomDate = new Date(fourDaysAgo.getTime() + Math.random() * (threeDaysAgo.getTime() - fourDaysAgo.getTime()))
+      image.last_get_random_date = randomDate
+      await imageRepo.save(image)
+    }
+
+    console.log('Updated last_get_random_date for all images.')
+  } catch (error: unknown) {
+    console.error('Error updating last_get_random_date:', error)
+  }
+}

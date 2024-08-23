@@ -15,7 +15,8 @@ import { queryArtistCountMaterializedView, refreshArtistCountMaterializedView } 
 import { addImageToCollection, createCollection, deleteCollection, getCollectionById,
   getCollectionBySlug, getCollections, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
-  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId, getRandomImage} from './controllers/image'
+  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId, getRandomImage,
+  updateImageLastGetRandomDate} from './controllers/image'
 import { queryImageCountMaterializedView, refreshImageCountMaterializedView } from './controllers/imageCountMaterializedView'
 import { refreshImageRandomOrderMaterializedView } from './controllers/imageRandomOrderMaterializedView'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
@@ -44,6 +45,10 @@ const startApp = async () => {
     await refreshArtistCountMaterializedView()
     await refreshImageRandomOrderMaterializedView()
     await updateArtistTotalImages()
+  })
+
+  cron.schedule('15 0 * * *', async () => {
+    await updateImageLastGetRandomDate()
   })
 
   const multerStorage = multer.memoryStorage()
@@ -592,7 +597,7 @@ const startApp = async () => {
         res.send({ message: 'Background removed' })
       } catch (error) {
         console.error(`Error: ${error.message}`);
-        res.status(500).json({ error: 'Failed to remove background' });
+        res.status(500).json({ error: 'Failed to remove background' })
       }
     })
 

@@ -52,3 +52,27 @@ export async function createTelegramVideoFileIfNotExists(telegram_chat_id: strin
     handleThrowError(error)
   }
 }
+
+export async function updateTelegramVideoFile(telegram_chat_id: string, image_id: number, new_telegram_cached_file_id: string) {
+  try {
+    const telegramVideoFileRepo = appDataSource.getRepository(TelegramVideoFile)
+
+    const telegramVideoFile = await telegramVideoFileRepo.findOne({
+      where: {
+        telegram_chat_id: Equal(telegram_chat_id),
+        image: Equal(image_id)
+      }
+    })
+
+    if (telegramVideoFile) {
+      telegramVideoFile.telegram_cached_file_id = new_telegram_cached_file_id
+      await telegramVideoFileRepo.save(telegramVideoFile)
+    } else {
+      throw new Error(`TelegramVideoFile with chat_id ${telegram_chat_id} and image_id ${image_id} not found`)
+    }
+
+    return telegramVideoFile
+  } catch (error: unknown) {
+    handleThrowError(error)
+  }
+}

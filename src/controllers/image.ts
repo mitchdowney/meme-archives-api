@@ -490,8 +490,6 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
     let query = imageRepo.createQueryBuilder('image')
       .select('image.id')
 
-    query = query.where('image.has_video = :hasVideo', { hasVideo: false })
-
     let tagPresent = false
     
     if (tagTitle) {

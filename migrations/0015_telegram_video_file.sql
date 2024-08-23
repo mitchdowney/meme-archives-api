@@ -16,3 +16,7 @@ CREATE TABLE public.telegram_video_file (
 
 ALTER TABLE public.telegram_video_file
     RENAME COLUMN telegram_bot_user_name TO telegram_chat_id;
+
+-- Remove the unique constraint
+ALTER TABLE public.telegram_video_file
+DROP CONSTRAINT telegram_video_file_image_id_key;

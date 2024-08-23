@@ -11,6 +11,7 @@ import { ImageRandomOrderMaterializedView } from '../models/imageRandomOrderMate
 import { ImageTag } from '../models/imageTag'
 import { Tag } from '../models/tag'
 import { TagCountMaterializedView } from '../models/tagCountMaterializedView'
+import { TelegramVideoFile } from '../models/telegramVideoFile'
 
 const appDataSource = new DataSource({
   type: 'postgres',
@@ -32,7 +33,8 @@ const appDataSource = new DataSource({
     ImageRandomOrderMaterializedView,
     ImageTag,
     Tag,
-    TagCountMaterializedView
+    TagCountMaterializedView,
+    TelegramVideoFile
   ]
 })
 

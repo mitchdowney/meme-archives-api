@@ -11,3 +11,8 @@ CREATE TABLE public.telegram_video_file (
     CONSTRAINT unique_bot_user_name_cached_file_id
         UNIQUE (telegram_bot_user_name, telegram_cached_file_id)
 );
+
+-- Rename telegram_bot_user_name column to telegram_chat_id
+
+ALTER TABLE public.telegram_video_file
+    RENAME COLUMN telegram_bot_user_name TO telegram_chat_id;

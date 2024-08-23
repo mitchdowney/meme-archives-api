@@ -4,13 +4,13 @@ import { handleThrowError } from '../lib/errors'
 import { Image } from '../models/image'
 import { TelegramVideoFile } from '../models/telegramVideoFile'
 
-export async function getTelegramVideoFile(telegram_bot_user_name: string, image_id: number) {
+export async function getTelegramVideoFile(telegram_chat_id: string, image_id: number) {
   try {
     const telegramVideoFileRepo = appDataSource.getRepository(TelegramVideoFile)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const telegramVideoFile: any = await telegramVideoFileRepo.findOne({
       where: {
-        telegram_bot_user_name: Equal(telegram_bot_user_name),
+        telegram_chat_id: Equal(telegram_chat_id),
         image: Equal(image_id)
       }
     })
@@ -21,14 +21,14 @@ export async function getTelegramVideoFile(telegram_bot_user_name: string, image
   }
 }
 
-export async function createTelegramVideoFileIfNotExists(telegram_bot_user_name: string, image_id: number, telegram_cached_file_id: string) {
+export async function createTelegramVideoFileIfNotExists(telegram_chat_id: string, image_id: number, telegram_cached_file_id: string) {
   try {
     const telegramVideoFileRepo = appDataSource.getRepository(TelegramVideoFile)
     const imageRepo = appDataSource.getRepository(Image)
 
     let telegramVideoFile = await telegramVideoFileRepo.findOne({
       where: {
-        telegram_bot_user_name: Equal(telegram_bot_user_name),
+        telegram_chat_id: Equal(telegram_chat_id),
         image: Equal(image_id)
       }
     })
@@ -40,7 +40,7 @@ export async function createTelegramVideoFileIfNotExists(telegram_bot_user_name:
       }
 
       telegramVideoFile = new TelegramVideoFile()
-      telegramVideoFile.telegram_bot_user_name = telegram_bot_user_name
+      telegramVideoFile.telegram_chat_id = telegram_chat_id
       telegramVideoFile.image = image
       telegramVideoFile.telegram_cached_file_id = telegram_cached_file_id
 

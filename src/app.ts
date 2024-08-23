@@ -30,6 +30,8 @@ import { artistUploadFields, artistUploadHandler } from './services/artistImageU
 import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
 import { removeBackgroundFromPngImage } from './services/rembg'
 import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
+import { checkIfValidInteger } from './lib/validation'
+import { createTelegramVideoFileIfNotExists, getTelegramVideoFile } from './controllers/telegramVideoFile'
 
 const port = 4321
 
@@ -640,6 +642,46 @@ const startApp = async () => {
         const data = await queryTagCountMaterializedView()
         res.status(200)
         res.send({ tag_count: data })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/telegram-video-file',
+    authRequire,
+    async function (req: Request, res: Response) {
+      try {
+        const { telegram_bot_user_name, image_id, telegram_cached_file_id } = req.body
+        const data = await createTelegramVideoFileIfNotExists(
+          telegram_bot_user_name, image_id, telegram_cached_file_id)
+        res.status(201)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/telegram-video-file/:telegram_bot_user_name/:image_id',
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { image_id, telegram_bot_user_name } = req.params
+        const isValidInteger = checkIfValidInteger(image_id)
+        if (isValidInteger) {
+          const data = await getTelegramVideoFile(telegram_bot_user_name, parseInt(image_id, 10))
+          if (data) {
+            res.status(200)
+            res.send(data)
+          } else {
+            res.status(404)
+            res.send({ message: 'telegram video file not found' })
+          }
+        } else {
+          res.status(400)
+          res.send({ message: 'Invalid telegram_video_file image_id' })
+        }
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

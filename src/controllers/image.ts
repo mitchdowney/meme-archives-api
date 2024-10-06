@@ -514,7 +514,7 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType, mem
       query = query.andWhere(qb => {
         const subQuery = qb.subQuery()
           .select('1')
-          .from('image_tags', 'image_pfpTag')
+          .from('image_tag', 'image_pfpTag')
           .innerJoin('tag', 'pfpTag', 'pfpTag.id = image_pfpTag.tag_id')
           .where('pfpTag.title = :pfpTagTitle')
           .andWhere('image_pfpTag.image_id = image.id')

@@ -482,9 +482,10 @@ type GetRandomImage = {
   tagTitle: string
   imageType: ImageType
   imageMediumType: ImageMediumType | null
+  memeOnly: boolean
 }
 
-export async function getRandomImage({ tagTitle, imageType, imageMediumType }: GetRandomImage) {
+export async function getRandomImage({ tagTitle, imageType, imageMediumType, memeOnly }: GetRandomImage) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     let query = imageRepo.createQueryBuilder('image')
@@ -507,6 +508,11 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
       query = query.orderBy('image.last_get_random_date', 'ASC')
     } else {
       query = query.orderBy('RANDOM()')
+    }
+    
+    if (memeOnly) {
+      query = query.leftJoin('image.tags', 'pfpTag', 'pfpTag.title = :pfpTagTitle', { pfpTagTitle: 'pfp' })
+        .andWhere('pfpTag.id IS NULL')
     }
 
     query = query.take(1)

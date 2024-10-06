@@ -10,6 +10,7 @@ export interface PageRequest extends Request {
     sort?: QuerySort
     title?: string | null
     imageMediumType?: ImageMediumType | null
+    memeOnly: boolean
   }
 }
 

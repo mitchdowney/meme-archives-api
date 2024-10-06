@@ -3,7 +3,7 @@ import { ImageMediumType, ImageType, PageRequest, QuerySort } from '../types'
 import { CollectionQueryType } from '../controllers/collections'
 
 export const parsePageQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
-  const { id, page, imageType, imageMediumType, sort, title } = req.query
+  const { id, page, imageType, imageMediumType, memeOnly, sort, title } = req.query
 
   let parsedPage = typeof page === 'string' ? Math.ceil(parseInt(page, 10)) : 1
   parsedPage = parsedPage < 1 ? 1 : parsedPage
@@ -27,7 +27,8 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
     imageType: parsedImageType,
     imageMediumType: parsedImageMediumType,
     sort: parsedQuerySort,
-    title: parsedTitle
+    title: parsedTitle,
+    memeOnly: memeOnly === 'true'
   }
 
   await next()

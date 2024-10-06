@@ -477,8 +477,13 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { title, imageType, imageMediumType } = req.locals
-        const data = await getRandomImage({ tagTitle: title, imageType, imageMediumType })
+        const { title, imageType, imageMediumType, memeOnly } = req.locals
+        const data = await getRandomImage({
+          tagTitle: title,
+          imageType,
+          imageMediumType,
+          memeOnly
+        })
         res.status(200)
         res.send(data)
       } catch (error) {

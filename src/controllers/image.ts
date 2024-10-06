@@ -511,8 +511,16 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType, mem
     }
     
     if (memeOnly) {
-      query = query.leftJoin('image.tags', 'pfpTag', 'pfpTag.title = :pfpTagTitle', { pfpTagTitle: 'pfp' })
-        .andWhere('pfpTag.id IS NULL')
+      query = query.andWhere(qb => {
+        const subQuery = qb.subQuery()
+          .select('1')
+          .from('image_tags', 'image_pfpTag')
+          .innerJoin('tag', 'pfpTag', 'pfpTag.id = image_pfpTag.tag_id')
+          .where('pfpTag.title = :pfpTagTitle')
+          .andWhere('image_pfpTag.image_id = image.id')
+          .getQuery();
+        return `NOT EXISTS (${subQuery})`
+      }).setParameter('pfpTagTitle', 'pfp')
     }
 
     query = query.take(1)

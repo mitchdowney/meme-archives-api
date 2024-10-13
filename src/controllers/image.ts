@@ -492,7 +492,7 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
 
     query = query.where('image.has_video = :hasVideo', { hasVideo: false })
 
-    // let tagPresent = false
+    let tagPresent = false
     
     if (tagTitle) {
       tagTitle = tagTitle.toLowerCase().trim()
@@ -500,16 +500,16 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
       const tag = await tagRepo.findOne({ where: { title: tagTitle } })
       
       if (tag) {
-        // tagPresent = true
+        tagPresent = true
         query = query.innerJoin('image.tags', 'tags', 'tags.id = :tagId', { tagId: tag.id })
       }
     }
     
-    // if (tagPresent) {
-    query = query.orderBy('image.last_get_random_date', 'ASC')
-    // } else {
-    //   query = query.orderBy('RANDOM()')
-    // }
+    if (tagPresent) {
+      query = query.orderBy('image.last_get_random_date', 'ASC')
+    } else {
+      query = query.orderBy('RANDOM()')
+    }
 
     query = query.take(1)
 
@@ -543,5 +543,28 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType }: G
     return image
   } catch (error: unknown) {
     handleThrowError(error)
+  }
+}
+
+export async function updateImageLastGetRandomDate() {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const images = await imageRepo.find()
+
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+
+    const fourDaysAgo = new Date()
+    fourDaysAgo.setDate(fourDaysAgo.getDate() - 4)
+
+    for (const image of images) {
+      const randomDate = new Date(fourDaysAgo.getTime() + Math.random() * (threeDaysAgo.getTime() - fourDaysAgo.getTime()))
+      image.last_get_random_date = randomDate
+      await imageRepo.save(image)
+    }
+
+    console.log('Updated last_get_random_date for all images.')
+  } catch (error: unknown) {
+    console.error('Error updating last_get_random_date:', error)
   }
 }

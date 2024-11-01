@@ -15,7 +15,7 @@ import { queryArtistCountMaterializedView, refreshArtistCountMaterializedView } 
 import { addImageToCollection, createCollection, deleteCollection, getCollectionById,
   getCollectionBySlug, getCollections, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
-  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId, getRandomImage,
+  getImagesByTagId, getImagesByTagTitle, getImages, getImagesWithoutArtist, getImagesByCollectionId, getImagesAllByCollectionId, getRandomImage,
   updateImageLastGetRandomDate} from './controllers/image'
 import { queryImageCountMaterializedView, refreshImageCountMaterializedView } from './controllers/imageCountMaterializedView'
 import { refreshImageRandomOrderMaterializedView } from './controllers/imageRandomOrderMaterializedView'
@@ -437,10 +437,17 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { id: tagId, page, imageType, imageMediumType } = req.locals
-        const data = await getImagesByTagId({ tagId, page, imageType, imageMediumType })
-        res.status(200)
-        res.send(data)
+        const { id: tagId, page, imageType, imageMediumType, title: tagTitle } = req.locals
+        if (tagTitle) {
+          const data = await getImagesByTagTitle({ tagTitle, page, imageType, imageMediumType })
+          res.status(200)
+          res.send(data)
+          return
+        } else {
+          const data = await getImagesByTagId({ tagId, page, imageType, imageMediumType })
+          res.status(200)
+          res.send(data)
+        }
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

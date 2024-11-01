@@ -20,3 +20,14 @@ ALTER TABLE public.telegram_video_file
 -- Remove the unique constraint
 ALTER TABLE public.telegram_video_file
 DROP CONSTRAINT telegram_video_file_image_id_key;
+
+-- Drop the existing foreign key constraint
+ALTER TABLE public.telegram_video_file
+DROP CONSTRAINT fk_image;
+
+-- Add a new foreign key constraint with ON DELETE CASCADE
+ALTER TABLE public.telegram_video_file
+ADD CONSTRAINT fk_image
+FOREIGN KEY (image_id)
+REFERENCES public.image (id)
+ON DELETE CASCADE;

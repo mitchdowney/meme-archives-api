@@ -19,7 +19,7 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
   const parsedQuerySort: QuerySort = ['alphabetical', 'reverse-alphabetical', 'newest', 'oldest', 'random']
     .includes(sort as string) ? sort as QuerySort : 'newest'
 
-  const parsedTitle = typeof title === 'string' ? title : null
+  const parsedTitle = typeof title === 'string' ? decodeURIComponent(title) : null
 
   req.locals = {
     id: parsedId,

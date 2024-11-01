@@ -444,6 +444,13 @@ export async function getCollectionPreviewImages(collectionId: number) {
   }
 }
 
+type SearchImagesByTagTitle = {
+  tagTitle: string
+  page: number
+  imageType: ImageType
+  imageMediumType: ImageMediumType
+}
+
 type SearchImagesByTagId = {
   tagId: number
   page: number
@@ -451,28 +458,47 @@ type SearchImagesByTagId = {
   imageMediumType: ImageMediumType
 }
 
+async function getImagesByTag(tag: Tag, page: number, imageType: ImageType, imageMediumType: ImageMediumType) {
+  const imageRepo = appDataSource.getRepository(Image)
+  const data = await imageRepo.findAndCount({
+    where: {
+      tags: tag,
+      ...getImageTypeWherePropertyObj(imageType),
+      ...(getImageMediumTypesQueryColumn(imageMediumType) ? {
+        [getImageMediumTypesQueryColumn(imageMediumType)]: true
+      } : {})
+    },
+    ...getPaginationQueryParams(page),
+    relations: ['artists', 'tags'],
+    relationLoadStrategy: 'query',
+    order: {
+      created_at: 'DESC'
+    }
+  })
+
+  return data
+}
+
+export async function getImagesByTagTitle({ page, tagTitle, imageType, imageMediumType }: SearchImagesByTagTitle) {
+  try {
+    const tagRepo = appDataSource.getRepository(Tag)
+    const formattedTagTitle = tagTitle.toLowerCase().trim()
+    const tag = await tagRepo.findOne({ where: { title: formattedTagTitle } })
+
+    if (!tag) {
+      throw new Error(`Tag with title ${formattedTagTitle} not found`)
+    }
+
+    return await getImagesByTag(tag, page, imageType, imageMediumType)
+  } catch (error: unknown) {
+    handleThrowError(error)
+  }
+}
+
 export async function getImagesByTagId({ page, tagId, imageType, imageMediumType }: SearchImagesByTagId) {
   try {
     const tag = await getTagById(tagId)
-
-    const imageRepo = appDataSource.getRepository(Image)
-    const data = await imageRepo.findAndCount({
-      where: {
-        tags: tag,
-        ...getImageTypeWherePropertyObj(imageType),
-        ...(getImageMediumTypesQueryColumn(imageMediumType) ? {
-          [getImageMediumTypesQueryColumn(imageMediumType)]: true
-        } : {})
-      },
-      ...getPaginationQueryParams(page),
-      relations: ['artists', 'tags'],
-      relationLoadStrategy: 'query',
-      order: {
-        created_at: 'DESC'
-      }
-    })
-  
-    return data
+    return await getImagesByTag(tag, page, imageType, imageMediumType)
   } catch (error: unknown) {
     handleThrowError(error)
   }

@@ -516,11 +516,11 @@ export async function getRandomImage({ tagTitle, imageType, imageMediumType, mem
           .select('1')
           .from('image_tag', 'image_pfpTag')
           .innerJoin('tag', 'pfpTag', 'pfpTag.id = image_pfpTag.tag_id')
-          .where('pfpTag.title = :pfpTagTitle')
+          .where('pfpTag.title IN (:...pfpTagTitles)')
           .andWhere('image_pfpTag.image_id = image.id')
           .getQuery();
         return `NOT EXISTS (${subQuery})`
-      }).setParameter('pfpTagTitle', 'pfp')
+      }).setParameter('pfpTagTitles', ['pfp', '4chan'])
     }
 
     query = query.take(1)

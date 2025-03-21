@@ -80,7 +80,19 @@ export const uploadIPFSImageToS3Cache = async (
     }
   }
 
-  const response = await axios.get(ipfsImageUrl, { responseType: 'arraybuffer' })
+  let response
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      response = await axios.get(ipfsImageUrl, { responseType: 'arraybuffer' })
+      break
+    } catch (error) {
+      if (attempt === 5) {
+        throw error
+      }
+      await new Promise(resolve => setTimeout(resolve, 5000))
+    }
+  }
+
   const fileBuffer = Buffer.from(response.data)
 
   const params: S3.PutObjectRequest = {

@@ -83,7 +83,12 @@ export const uploadIPFSImageToS3Cache = async (
   let response
   for (let attempt = 1; attempt <= 5; attempt++) {
     try {
-      response = await axios.get(ipfsImageUrl, { responseType: 'arraybuffer' })
+      response = await axios.get(ipfsImageUrl, {
+        responseType: 'arraybuffer',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        }
+      })
       break
     } catch (error) {
       if (attempt === 5) {

@@ -567,9 +567,9 @@ const startApp = async () => {
     async function (req: Request, res: Response) {
       try {
         const ipfsImageUrl = req.body.ipfsImageUrl
-        await uploadIPFSImageToS3Cache(ipfsImageUrl)
+        const cacheImageUrl = await uploadIPFSImageToS3Cache(ipfsImageUrl)
         res.status(201)
-        res.send({ message: 'IPFS image uploaded to S3 cache' })
+        res.send({ cacheImageUrl })
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

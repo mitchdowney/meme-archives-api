@@ -99,7 +99,7 @@ export const uploadIPFSImageToS3Cache = async (
   try {
     await s3.headObject(headParams).promise()
     // If no error is thrown, the object exists
-    return `https://${config.aws.imageBucket}.s3.${config.aws.region}.amazonaws.com/${key}`
+    return `${config.aws.cloudfrontPath}/${key}`
   } catch (error) {
     if (error.code !== 'NotFound') {
       throw error
@@ -112,8 +112,9 @@ export const uploadIPFSImageToS3Cache = async (
     Body: fileBuffer
   }
 
-  const uploadResult = await s3.upload(params).promise()
-  return uploadResult.Location
+  await s3.upload(params).promise()
+  
+  return `${config.aws.cloudfrontPath}/${key}`
 }
 
 const getUploadImageFileName = (imageType: ImageMediumType) => {

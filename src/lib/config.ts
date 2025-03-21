@@ -14,6 +14,7 @@ export const config = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
     imageBucket: process.env.AWS_IMAGE_BUCKET,
+    cloudfrontPath: process.env.AWS_CLOUDFRONT_PATH,
     useDeprecatedNoBorderImageName: process.env.USE_DEPRECATED_NO_BORDER_IMAGE_NAME
   },
   db: {

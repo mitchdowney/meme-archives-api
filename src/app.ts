@@ -33,6 +33,7 @@ import { removeBackgroundFromPngImage } from './services/rembg'
 import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
 import { checkIfValidInteger } from './lib/validation'
 import { createTelegramVideoFileIfNotExists, getTelegramVideoFile, updateTelegramVideoFile } from './controllers/telegramVideoFile'
+import { uploadIPFSImageToS3Cache } from './services/aws'
 
 const port = 4321
 
@@ -555,6 +556,20 @@ const startApp = async () => {
         } else {
           throw new Error(`Invalid id provided: ${id}`)
         }
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/image/upload-ipfs-image-to-cache',
+    authRequire,
+    async function (req: Request, res: Response) {
+      try {
+        const ipfsImageUrl = req.body.ipfsImageUrl
+        await uploadIPFSImageToS3Cache(ipfsImageUrl)
+        res.status(201)
+        res.send({ message: 'IPFS image uploaded to S3 cache' })
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

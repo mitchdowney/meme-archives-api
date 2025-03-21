@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { S3 } from 'aws-sdk'
+import axios from 'axios'
 import { config } from '../lib/config'
 import { ArtistProfilePictureType, ImageMediumType } from '../types'
 
@@ -53,6 +54,39 @@ export const uploadImageToS3 = async (
     Key: key,
     Body: file.buffer,
     ContentType
+  }
+
+  const uploadResult = await s3.upload(params).promise()
+  return uploadResult.Location
+}
+
+export const uploadIPFSImageToS3Cache = async (
+  ipfsImageUrl: string
+) => {
+  const key = ipfsImageUrl.replace('https://ipfs.io/ipfs/', '')
+
+  const headParams: S3.HeadObjectRequest = {
+    Bucket: config.aws.imageBucket,
+    Key: key
+  }
+
+  try {
+    await s3.headObject(headParams).promise()
+    // If no error is thrown, the object exists
+    return `https://${config.aws.imageBucket}.s3.${config.aws.region}.amazonaws.com/${key}`
+  } catch (error) {
+    if (error.code !== 'NotFound') {
+      throw error
+    }
+  }
+
+  const response = await axios.get(ipfsImageUrl, { responseType: 'arraybuffer' })
+  const fileBuffer = Buffer.from(response.data)
+
+  const params: S3.PutObjectRequest = {
+    Bucket: config.aws.imageBucket,
+    Key: key,
+    Body: fileBuffer
   }
 
   const uploadResult = await s3.upload(params).promise()

@@ -1,4 +1,4 @@
-# meme-archives-api
+# Meme Archives API
 
 Backend API for the searchable meme gallery. Provides endpoints for managing media, tags, collections, and more.
 
@@ -9,7 +9,7 @@ Backend API for the searchable meme gallery. Provides endpoints for managing med
 - meme-archives-ops
 - AWS S3
 
-## Env vars
+## Environment Variables
 
 See the `.env.example` file for more information on required environment variables.
 

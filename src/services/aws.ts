@@ -1,9 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { S3 } from 'aws-sdk'
 import axios from 'axios'
-import { fileTypeFromBuffer } from 'file-type'
 import { config } from '../lib/config'
 import { ArtistProfilePictureType, ImageMediumType } from '../types'
+
+async function detectFileType(buffer: Buffer) {
+  const { fileTypeFromBuffer } = await import('file-type')
+  return fileTypeFromBuffer(buffer)
+}
 
 const s3 = new S3({
   accessKeyId: config.aws.accessKeyId,
@@ -85,7 +89,7 @@ export const uploadIPFSImageToS3Cache = async (
   }
 
   const fileBuffer = Buffer.from(response.data)
-  const fileType = await fileTypeFromBuffer(fileBuffer)
+  const fileType = await detectFileType(fileBuffer)
 
   if (fileType && !key.endsWith(`.${fileType.ext}`)) {
     key = `${key}.${fileType.ext}`

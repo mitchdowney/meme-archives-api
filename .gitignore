@@ -1,4 +1,9 @@
 .env
+.env-croc
+.env-dank
+.env-daumen
+.env-paint
+.env-riptard
 
 dist/
 

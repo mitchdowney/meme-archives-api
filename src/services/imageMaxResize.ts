@@ -10,30 +10,54 @@ export async function createMaxResizedImage(originalImageFile: Express.Multer.Fi
         const noBorderedImageBuffer = originalImageFile?.buffer
         const { width: originalWidth, height: originalHeight } = await sharp(noBorderedImageBuffer).metadata()
 
+        let processedBuffer: Buffer | null = null
+        const filename = 'temp-preview.png'
+        const mimetype = 'image/png'
+
         if (originalWidth > 2000) {
-          const resizedImageBuffer = await sharp(noBorderedImageBuffer)
+          processedBuffer = await sharp(noBorderedImageBuffer)
             .resize({ width: 2000 })
+            .png({
+              compressionLevel: 9,
+              quality: 90,
+              adaptiveFiltering: true,
+              effort: 9
+            })
             .toBuffer()
-          const finalImageFile = arrayBufferToExpressMulterFile(resizedImageBuffer, 'temp-preview', 'image/png')
-          resolve(finalImageFile)
         } else if (originalHeight > 2000) {
-          const resizedImageBuffer = await sharp(noBorderedImageBuffer)
+          processedBuffer = await sharp(noBorderedImageBuffer)
             .resize({ height: 2000 })
+            .png({
+              compressionLevel: 9,
+              quality: 90,
+              adaptiveFiltering: true,
+              effort: 9
+            })
             .toBuffer()
-          const finalImageFile = arrayBufferToExpressMulterFile(resizedImageBuffer, 'temp-preview', 'image/png')
-          resolve(finalImageFile)
         } else {
           const isPng = originalImageFile.mimetype === 'image/png'
-          let resizedImageBuffer: Buffer
           if (!isPng) {
-            resizedImageBuffer = await sharp(noBorderedImageBuffer)
-              .png()
+            // Convert to PNG with compression
+            processedBuffer = await sharp(noBorderedImageBuffer)
+              .png({
+                compressionLevel: 9,
+                quality: 90,
+                adaptiveFiltering: true,
+                effort: 9
+              })
               .toBuffer()
-            const finalImageFile = arrayBufferToExpressMulterFile(resizedImageBuffer, 'temp-preview.png', 'image/png')
-            resolve(finalImageFile)
           } else {
+            // Already PNG, just check size
             resolve(originalImageFile)
+            return
           }
+        }
+
+        if (processedBuffer) {
+          const finalImageFile = arrayBufferToExpressMulterFile(processedBuffer, filename, mimetype)
+          resolve(finalImageFile)
+        } else {
+          resolve(originalImageFile)
         }
       } catch (error) {
         reject(error)

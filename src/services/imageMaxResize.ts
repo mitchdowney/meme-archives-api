@@ -29,11 +29,11 @@ export async function createMaxResizedImage(originalImageFile: Express.Multer.Fi
             resizedImageBuffer = await sharp(noBorderedImageBuffer)
               .png()
               .toBuffer()
+            const finalImageFile = arrayBufferToExpressMulterFile(resizedImageBuffer, 'temp-preview.png', 'image/png')
+            resolve(finalImageFile)
           } else {
-            resizedImageBuffer = noBorderedImageBuffer
+            resolve(originalImageFile)
           }
-          const finalImageFile = arrayBufferToExpressMulterFile(resizedImageBuffer, 'temp-preview.png', 'image/png')
-          resolve(finalImageFile)
         }
       } catch (error) {
         reject(error)

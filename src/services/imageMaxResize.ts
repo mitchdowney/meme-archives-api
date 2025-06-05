@@ -18,7 +18,7 @@ export async function createMaxResizedImage(originalImageFile: Express.Multer.Fi
           processedBuffer = await sharp(noBorderedImageBuffer)
             .resize({ width: 2000 })
             .png({
-              compressionLevel: 9,
+              compressionLevel: 5,
               quality: 90,
               adaptiveFiltering: true,
               effort: 9
@@ -28,7 +28,7 @@ export async function createMaxResizedImage(originalImageFile: Express.Multer.Fi
           processedBuffer = await sharp(noBorderedImageBuffer)
             .resize({ height: 2000 })
             .png({
-              compressionLevel: 9,
+              compressionLevel: 5,
               quality: 90,
               adaptiveFiltering: true,
               effort: 9
@@ -40,7 +40,7 @@ export async function createMaxResizedImage(originalImageFile: Express.Multer.Fi
             // Convert to PNG with compression
             processedBuffer = await sharp(noBorderedImageBuffer)
               .png({
-                compressionLevel: 9,
+                compressionLevel: 5,
                 quality: 90,
                 adaptiveFiltering: true,
                 effort: 9
